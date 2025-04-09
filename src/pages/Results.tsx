@@ -6,6 +6,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/componen
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Download, ArrowLeft, FileDown } from "lucide-react";
 import { toast } from "sonner";
+import { useIsMobile, useViewportWidth } from "@/hooks/use-mobile";
 
 interface DocumentationResult {
   textContent: string;
@@ -16,6 +17,9 @@ const Results = () => {
   const location = useLocation();
   const [result, setResult] = useState<DocumentationResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isMobile = useIsMobile();
+  const viewportWidth = useViewportWidth();
+  const isSmallScreen = viewportWidth ? viewportWidth < 640 : false;
 
   useEffect(() => {
     // In a real implementation, we would get the actual results from the state passed in location
@@ -98,13 +102,102 @@ The project follows a test-driven development approach, with comprehensive unit 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-xl text-slate-600">Loading documentation results...</div>
+        <div className="animate-pulse text-lg md:text-xl text-slate-600">Loading documentation results...</div>
       </div>
     );
   }
 
+  // For mobile devices, stack panels vertically
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-4">
+        <div className="container mx-auto px-4">
+          <header className="flex justify-between items-center mb-4 flex-wrap gap-2">
+            <Link to="/" className="w-full sm:w-auto">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Back to Generator
+              </Button>
+            </Link>
+            <h1 className="text-xl font-bold text-slate-900 w-full sm:w-auto">Documentation Results</h1>
+            <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+              <Button onClick={downloadMarkdown} className="flex-1 sm:flex-initial flex items-center gap-1 text-sm">
+                <FileDown className="h-4 w-4" />
+                Export as .md
+              </Button>
+              <Button onClick={downloadPDF} variant="outline" className="flex-1 sm:flex-initial flex items-center gap-1 text-sm">
+                <Download className="h-4 w-4" />
+                Export as PDF
+              </Button>
+            </div>
+          </header>
+
+          {result && (
+            <div className="space-y-4">
+              {/* Text Content Panel */}
+              <div className="border rounded-lg bg-white shadow-md overflow-hidden">
+                <div className="p-3 h-full">
+                  <h2 className="text-lg font-semibold mb-2 text-slate-800">Documentation Text</h2>
+                  <ScrollArea className="h-[40vh]">
+                    <div className="prose max-w-none p-2">
+                      {result.textContent.split('\n').map((line, idx) => {
+                        if (line.startsWith('# ')) {
+                          return <h1 key={idx} className="text-xl font-bold mt-3 mb-2">{line.replace('# ', '')}</h1>;
+                        } else if (line.startsWith('## ')) {
+                          return <h2 key={idx} className="text-lg font-semibold mt-3 mb-2">{line.replace('## ', '')}</h2>;
+                        } else if (line.startsWith('- ')) {
+                          return <li key={idx} className="ml-4 mb-1">{line.replace('- ', '')}</li>;
+                        } else if (line.startsWith('```')) {
+                          return line.includes('```typescript') ? 
+                            <pre key={idx} className="bg-slate-100 p-2 rounded my-2 font-mono text-xs overflow-x-auto"></pre> : 
+                            null;
+                        } else if (line.endsWith('```')) {
+                          return null;
+                        } else if (line.trim() === '') {
+                          return <br key={idx} />;
+                        } else {
+                          return <p key={idx} className="mb-2 text-sm">{line}</p>;
+                        }
+                      })}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </div>
+
+              {/* Visual Content Panel */}
+              <div className="border rounded-lg bg-white shadow-md overflow-hidden">
+                <div className="p-3 h-full">
+                  <h2 className="text-lg font-semibold mb-2 text-slate-800">Visual Representation</h2>
+                  <ScrollArea className="h-[40vh]">
+                    <div className="p-3 bg-slate-50 rounded-md h-full flex items-center justify-center">
+                      {result.visualContent ? (
+                        <div className="text-center">
+                          <pre className="text-left text-[10px] sm:text-xs font-mono bg-white p-3 rounded border overflow-x-auto">
+                            {result.visualContent}
+                          </pre>
+                          <p className="text-xs text-slate-500 mt-3">
+                            Visual diagram representation (Graphviz output)
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="text-center text-slate-500">
+                          <p className="text-sm">No visual content available for this documentation</p>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // For desktop/tablet view
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-6 md:py-8">
       <div className="container max-w-7xl mx-auto px-4">
         <header className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
@@ -114,7 +207,7 @@ The project follows a test-driven development approach, with comprehensive unit 
                 Back to Generator
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold text-slate-900">Documentation Results</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Documentation Results</h1>
           </div>
           <div className="flex gap-2">
             <Button onClick={downloadMarkdown} className="flex items-center gap-1">

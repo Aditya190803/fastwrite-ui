@@ -1,6 +1,7 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PromptPreviewProps {
   sourceType: "github" | "zip";
@@ -18,6 +19,7 @@ export const PromptPreview = ({
   literatureSource
 }: PromptPreviewProps) => {
   const [prompt, setPrompt] = useState<string>("");
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Generate the prompt based on selected options
@@ -83,9 +85,9 @@ Format the documentation in a clear, professional style with appropriate heading
   }, [sourceType, githubUrl, selectedCodeSections, selectedReportSections, literatureSource]);
 
   return (
-    <div className="border rounded-md bg-slate-50 p-3">
-      <ScrollArea className="h-48 w-full rounded">
-        <pre className="text-sm font-mono whitespace-pre-wrap p-2 text-slate-800">{prompt}</pre>
+    <div className="border rounded-md bg-slate-50 p-2 md:p-3">
+      <ScrollArea className={`${isMobile ? 'h-36' : 'h-48'} w-full rounded`}>
+        <pre className="text-xs md:text-sm font-mono whitespace-pre-wrap p-2 text-slate-800">{prompt}</pre>
       </ScrollArea>
     </div>
   );

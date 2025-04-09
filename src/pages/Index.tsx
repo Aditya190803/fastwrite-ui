@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,9 +11,11 @@ import { DocumentationPreferences } from "@/components/DocumentationPreferences"
 import { PromptPreview } from "@/components/PromptPreview";
 import { InfoIcon } from "lucide-react";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [sourceType, setSourceType] = useState<"github" | "zip">("github");
   const [githubUrl, setGithubUrl] = useState("");
   const [zipFile, setZipFile] = useState<File | null>(null);
@@ -93,26 +96,26 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-8">
-      <div className="container max-w-4xl mx-auto px-4">
-        <header className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">AI Documentation Generator</h1>
-          <p className="text-slate-600 max-w-xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-4 md:py-8">
+      <div className="container mx-auto px-4 max-w-full md:max-w-4xl">
+        <header className="text-center mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">AI Documentation Generator</h1>
+          <p className="text-slate-600 text-sm md:text-base max-w-xl mx-auto px-2">
             Generate comprehensive documentation for your code with AI, combining technical details and academic reporting.
           </p>
         </header>
 
-        <Card className="mb-8 shadow-md">
-          <CardContent className="pt-6">
+        <Card className="mb-6 md:mb-8 shadow-md">
+          <CardContent className={`${isMobile ? 'pt-4 px-3' : 'pt-6'}`}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-slate-800">Source Code</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-slate-800">Source Code</h2>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <InfoIcon className="h-5 w-5 text-slate-400" />
+                    <InfoIcon className="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="max-w-xs">Provide your source code either by GitHub repository URL or by uploading a ZIP file.</p>
+                    <p className="max-w-[250px]">Provide your source code either by GitHub repository URL or by uploading a ZIP file.</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -133,24 +136,24 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card className="mb-8 shadow-md">
-          <CardContent className="pt-6">
+        <Card className="mb-6 md:mb-8 shadow-md">
+          <CardContent className={`${isMobile ? 'pt-4 px-3' : 'pt-6'}`}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-slate-800">Documentation Preferences</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-slate-800">Documentation Preferences</h2>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <InfoIcon className="h-5 w-5 text-slate-400" />
+                    <InfoIcon className="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="max-w-xs">Choose what sections to include in your documentation.</p>
+                    <p className="max-w-[250px]">Choose what sections to include in your documentation.</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
             
             <Tabs defaultValue="code" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6">
                 <TabsTrigger value="code">Code Documentation</TabsTrigger>
                 <TabsTrigger value="report">Academic Report</TabsTrigger>
               </TabsList>
@@ -169,17 +172,17 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card className="mb-8 shadow-md">
-          <CardContent className="pt-6">
+        <Card className="mb-6 md:mb-8 shadow-md">
+          <CardContent className={`${isMobile ? 'pt-4 px-3' : 'pt-6'}`}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-slate-800">Prompt Preview</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-slate-800">Prompt Preview</h2>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <InfoIcon className="h-5 w-5 text-slate-400" />
+                    <InfoIcon className="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="max-w-xs">This is the prompt that will be sent to the AI to generate your documentation.</p>
+                    <p className="max-w-[250px]">This is the prompt that will be sent to the AI to generate your documentation.</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -195,11 +198,11 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <div className="flex justify-center">
+        <div className="flex justify-center mb-8">
           <Button 
             onClick={handleSubmit} 
             disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 px-8 py-6 text-lg"
+            className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto md:px-8 py-4 md:py-6 text-base md:text-lg"
           >
             {isLoading ? "Generating Documentation..." : "Generate Documentation"}
           </Button>
