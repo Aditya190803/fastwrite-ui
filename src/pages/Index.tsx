@@ -2,16 +2,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { SourceInput } from "@/components/SourceInput";
 import { DocumentationPreferences } from "@/components/DocumentationPreferences";
 import { PromptPreview } from "@/components/PromptPreview";
-import { InfoIcon } from "lucide-react";
-import { toast } from "sonner";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Header } from "@/components/Header";
+import { CardSection } from "@/components/CardSection";
+import { SubmitButton } from "@/components/SubmitButton";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -98,115 +96,71 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-4 md:py-8">
       <div className="container mx-auto px-4 max-w-full md:max-w-4xl">
-        <header className="text-center mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">AI Documentation Generator</h1>
-          <p className="text-slate-600 text-sm md:text-base max-w-xl mx-auto px-2">
-            Generate comprehensive documentation for your code with AI, combining technical details and academic reporting.
-          </p>
-        </header>
+        <Header 
+          title="AI Documentation Generator"
+          description="Generate comprehensive documentation for your code with AI, combining technical details and academic reporting."
+        />
 
-        <Card className="mb-6 md:mb-8 shadow-md">
-          <CardContent className={`${isMobile ? 'pt-4 px-3' : 'pt-6'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-semibold text-slate-800">Source Code</h2>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <InfoIcon className="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-[250px]">Provide your source code either by GitHub repository URL or by uploading a ZIP file.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            
-            <SourceInput 
-              sourceType={sourceType}
-              setSourceType={setSourceType}
-              githubUrl={githubUrl}
-              setGithubUrl={setGithubUrl}
-              zipFile={zipFile}
-              setZipFile={setZipFile}
-              projectDescription={projectDescription}
-              setProjectDescription={setProjectDescription}
-              selectedAiModel={selectedAiModel}
-              setSelectedAiModel={setSelectedAiModel}
-            />
-          </CardContent>
-        </Card>
+        <CardSection 
+          title="Source Code" 
+          tooltip="Provide your source code either by GitHub repository URL or by uploading a ZIP file."
+        >
+          <SourceInput 
+            sourceType={sourceType}
+            setSourceType={setSourceType}
+            githubUrl={githubUrl}
+            setGithubUrl={setGithubUrl}
+            zipFile={zipFile}
+            setZipFile={setZipFile}
+            projectDescription={projectDescription}
+            setProjectDescription={setProjectDescription}
+            selectedAiModel={selectedAiModel}
+            setSelectedAiModel={setSelectedAiModel}
+          />
+        </CardSection>
 
-        <Card className="mb-6 md:mb-8 shadow-md">
-          <CardContent className={`${isMobile ? 'pt-4 px-3' : 'pt-6'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-semibold text-slate-800">Documentation Preferences</h2>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <InfoIcon className="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-[250px]">Choose what sections to include in your documentation.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+        <CardSection 
+          title="Documentation Preferences" 
+          tooltip="Choose what sections to include in your documentation."
+        >
+          <Tabs defaultValue="code" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6">
+              <TabsTrigger value="code">Code Documentation</TabsTrigger>
+              <TabsTrigger value="report">Academic Report</TabsTrigger>
+            </TabsList>
             
-            <Tabs defaultValue="code" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6">
-                <TabsTrigger value="code">Code Documentation</TabsTrigger>
-                <TabsTrigger value="report">Academic Report</TabsTrigger>
-              </TabsList>
-              
-              <DocumentationPreferences 
-                selectedCodeSections={selectedCodeSections}
-                setSelectedCodeSections={setSelectedCodeSections}
-                selectedReportSections={selectedReportSections}
-                setSelectedReportSections={setSelectedReportSections}
-                literatureSource={literatureSource}
-                setLiteratureSource={setLiteratureSource}
-                manualReferences={manualReferences}
-                setManualReferences={setManualReferences}
-              />
-            </Tabs>
-          </CardContent>
-        </Card>
-
-        <Card className="mb-6 md:mb-8 shadow-md">
-          <CardContent className={`${isMobile ? 'pt-4 px-3' : 'pt-6'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-semibold text-slate-800">Prompt Preview</h2>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <InfoIcon className="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-[250px]">This is the prompt that will be sent to the AI to generate your documentation.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            
-            <PromptPreview 
-              sourceType={sourceType}
-              githubUrl={githubUrl}
+            <DocumentationPreferences 
               selectedCodeSections={selectedCodeSections}
+              setSelectedCodeSections={setSelectedCodeSections}
               selectedReportSections={selectedReportSections}
+              setSelectedReportSections={setSelectedReportSections}
               literatureSource={literatureSource}
+              setLiteratureSource={setLiteratureSource}
+              manualReferences={manualReferences}
+              setManualReferences={setManualReferences}
             />
-          </CardContent>
-        </Card>
+          </Tabs>
+        </CardSection>
 
-        <div className="flex justify-center mb-8">
-          <Button 
-            onClick={handleSubmit} 
-            disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto md:px-8 py-4 md:py-6 text-base md:text-lg"
-          >
-            {isLoading ? "Generating Documentation..." : "Generate Documentation"}
-          </Button>
-        </div>
+        <CardSection 
+          title="Prompt Preview" 
+          tooltip="This is the prompt that will be sent to the AI to generate your documentation."
+        >
+          <PromptPreview 
+            sourceType={sourceType}
+            githubUrl={githubUrl}
+            selectedCodeSections={selectedCodeSections}
+            selectedReportSections={selectedReportSections}
+            literatureSource={literatureSource}
+          />
+        </CardSection>
+
+        <SubmitButton 
+          onClick={handleSubmit}
+          isLoading={isLoading}
+          text="Generate Documentation"
+          loadingText="Generating Documentation..."
+        />
       </div>
     </div>
   );
