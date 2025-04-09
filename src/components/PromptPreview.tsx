@@ -54,6 +54,9 @@ export const PromptPreview = ({
         : "Use the manually provided references for the literature survey."
       : "";
 
+    // Include indication that visual elements should be generated for the documentation
+    const visualizationText = "Include visual elements such as code structure diagrams, class hierarchy, or data flow visualizations where appropriate. Format any visual output in Graphviz DOT format.";
+
     const generatedPrompt = `
 You are a highly skilled software documentation expert. Generate comprehensive documentation for the following project:
 
@@ -70,6 +73,8 @@ ${selectedReportSectionNames.length > 0
   : "No academic report sections selected"}
 
 ${literatureText ? `\nFor literature review: ${literatureText}` : ""}
+
+${visualizationText}
 
 Format the documentation in a clear, professional style with appropriate headings, examples, and references. Include code snippets where relevant to illustrate key concepts.
 `.trim();

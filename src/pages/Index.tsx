@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { InfoIcon } from "lucide-react";
 import { toast } from "sonner";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [sourceType, setSourceType] = useState<"github" | "zip">("github");
   const [githubUrl, setGithubUrl] = useState("");
   const [zipFile, setZipFile] = useState<File | null>(null);
@@ -80,7 +81,8 @@ const Index = () => {
       
       toast.success("Documentation generated successfully!");
       
-      // This would navigate to results page in a real implementation
+      // Navigate to results page
+      navigate("/results");
       
     } catch (error) {
       console.error("Error submitting form:", error);
