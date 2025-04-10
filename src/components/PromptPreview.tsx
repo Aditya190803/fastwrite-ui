@@ -57,7 +57,7 @@ export const PromptPreview = ({
       : "";
 
     // Include indication that visual elements should be generated for the documentation
-    const visualizationText = "Include visual elements such as code structure diagrams, class hierarchy, or data flow visualizations where appropriate. Format any visual output in Graphviz DOT format.";
+    const visualizationText = "Include visual elements such as code structure diagrams, class hierarchy, or data flow visualizations where appropriate. Format any visual output in Mermaid.js format.";
 
     const generatedPrompt = `
 You are a highly skilled software documentation expert. Generate comprehensive documentation for the following project:

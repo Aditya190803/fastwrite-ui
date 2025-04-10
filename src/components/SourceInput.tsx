@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,8 @@ interface SourceInputProps {
   setZipFile: (file: File | null) => void;
   projectDescription: string;
   setProjectDescription: (description: string) => void;
+  selectedAiProvider: string;
+  setSelectedAiProvider: (provider: string) => void;
   selectedAiModel: string;
   setSelectedAiModel: (model: string) => void;
 }
@@ -32,10 +34,33 @@ export const SourceInput = ({
   setZipFile,
   projectDescription,
   setProjectDescription,
+  selectedAiProvider,
+  setSelectedAiProvider,
   selectedAiModel,
   setSelectedAiModel
 }: SourceInputProps) => {
   const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [aiModels, setAiModels] = useState<string[]>([]);
+
+  // Define available models for each provider
+  const providerModels: Record<string, string[]> = {
+    "openai": ["GPT-4o", "GPT-4o-mini", "GPT-4-turbo"],
+    "google": ["Gemini Pro", "Gemini Ultra", "Gemini Flash"],
+    "groq": ["LLama-3-8B", "LLama-3-70B", "Mixtral-8x7B"],
+    "openrouter": ["Claude-3-Opus", "Mistral-Large", "Phi-3"]
+  };
+
+  // Update available models when provider changes
+  useEffect(() => {
+    if (selectedAiProvider) {
+      setAiModels(providerModels[selectedAiProvider] || []);
+      // Set the first model as default when changing provider
+      if (providerModels[selectedAiProvider]?.length > 0) {
+        setSelectedAiModel(providerModels[selectedAiProvider][0]);
+      }
+    }
+  }, [selectedAiProvider, setSelectedAiModel]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -72,6 +97,13 @@ export const SourceInput = ({
       } else {
         alert("Please upload a ZIP file.");
       }
+    }
+  };
+
+  const handleFileUploadClick = () => {
+    // Trigger the hidden file input click
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
@@ -114,6 +146,7 @@ export const SourceInput = ({
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
+            onClick={handleFileUploadClick}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               dragActive 
                 ? "border-blue-400 bg-blue-50" 
@@ -150,12 +183,9 @@ export const SourceInput = ({
               className="hidden"
               onChange={handleFileChange}
               id="file-upload"
+              ref={fileInputRef}
             />
           </div>
-          <label
-            htmlFor="file-upload"
-            className="block w-full cursor-pointer"
-          ></label>
         </div>
       )}
 
@@ -186,10 +216,10 @@ export const SourceInput = ({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <Label htmlFor="ai-model" className="text-base font-medium">
-            AI Model
+          <Label htmlFor="ai-provider" className="text-base font-medium">
+            AI Provider
           </Label>
           <TooltipProvider>
             <Tooltip>
@@ -197,23 +227,53 @@ export const SourceInput = ({
                 <InfoIcon className="h-4 w-4 text-slate-400" />
               </TooltipTrigger>
               <TooltipContent>
-                <p className="max-w-xs">Select which AI model to use for generating documentation.</p>
+                <p className="max-w-xs">Select which AI provider to use for generating documentation.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
-        <Select value={selectedAiModel} onValueChange={setSelectedAiModel}>
+        <Select value={selectedAiProvider} onValueChange={setSelectedAiProvider}>
           <SelectTrigger>
-            <SelectValue placeholder="Select AI Model" />
+            <SelectValue placeholder="Select AI Provider" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="openai">OpenAI (GPT-4o)</SelectItem>
-            <SelectItem value="groq">Groq (LLama-3)</SelectItem>
-            <SelectItem value="gemini">Google Gemini</SelectItem>
-            <SelectItem value="ollama">Ollama (Local)</SelectItem>
+            <SelectItem value="openai">OpenAI</SelectItem>
+            <SelectItem value="google">Google</SelectItem>
+            <SelectItem value="groq">Groq</SelectItem>
+            <SelectItem value="openrouter">OpenRouter</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
+      {selectedAiProvider && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <Label htmlFor="ai-model" className="text-base font-medium">
+              AI Model
+            </Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <InfoIcon className="h-4 w-4 text-slate-400" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">Select which model to use from the chosen provider.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <Select value={selectedAiModel} onValueChange={setSelectedAiModel}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select AI Model" />
+            </SelectTrigger>
+            <SelectContent>
+              {aiModels.map((model) => (
+                <SelectItem key={model} value={model}>{model}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -19,7 +19,10 @@ const Index = () => {
   const [zipFile, setZipFile] = useState<File | null>(null);
   const [projectDescription, setProjectDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedAiModel, setSelectedAiModel] = useState<string>("openai");
+  
+  // AI model state
+  const [selectedAiProvider, setSelectedAiProvider] = useState<string>("openai");
+  const [selectedAiModel, setSelectedAiModel] = useState<string>("");
 
   // Documentation preferences
   const [selectedCodeSections, setSelectedCodeSections] = useState<string[]>([
@@ -55,6 +58,11 @@ const Index = () => {
         return;
       }
       
+      if (!selectedAiProvider || !selectedAiModel) {
+        toast.error("Please select both an AI provider and model");
+        return;
+      }
+      
       setIsLoading(true);
       
       // Create form data
@@ -72,6 +80,7 @@ const Index = () => {
       formData.append("reportSections", JSON.stringify(selectedReportSections));
       formData.append("literatureSource", literatureSource);
       formData.append("manualReferences", manualReferences);
+      formData.append("aiProvider", selectedAiProvider);
       formData.append("aiModel", selectedAiModel);
       
       // In a real app, we would send this to the backend
@@ -114,6 +123,8 @@ const Index = () => {
             setZipFile={setZipFile}
             projectDescription={projectDescription}
             setProjectDescription={setProjectDescription}
+            selectedAiProvider={selectedAiProvider}
+            setSelectedAiProvider={setSelectedAiProvider}
             selectedAiModel={selectedAiModel}
             setSelectedAiModel={setSelectedAiModel}
           />
