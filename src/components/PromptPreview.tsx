@@ -24,7 +24,7 @@ export const PromptPreview = ({
   useEffect(() => {
     // Generate the prompt based on selected options
     const sourceText = sourceType === "github" 
-      ? "Source code from the provided GitHub repository" 
+      ? "Source code from the repository" 
       : "Source code from the uploaded ZIP file";
     
     const codeSectionNames: Record<string, string> = {
