@@ -1,7 +1,7 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
-import { Highlighter, Marker } from "lucide-react";
+import { Highlighter, Pen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DocumentViewerProps {
@@ -42,7 +42,7 @@ const DocumentViewer = ({
             className={`flex items-center gap-1 ${markModeEnabled ? 'bg-yellow-100 text-yellow-700' : ''}`}
           >
             {markModeEnabled ? (
-              <Marker className="h-4 w-4" />
+              <Pen className="h-4 w-4" />
             ) : (
               <Highlighter className="h-4 w-4" />
             )}
