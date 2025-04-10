@@ -1,19 +1,17 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Download, ArrowLeft, FileDown } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile, useViewportWidth } from "@/hooks/use-mobile";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-
-interface DocumentationResult {
-  textContent: string;
-  visualContent?: string;
-}
+import DocumentViewer from "@/components/results/DocumentViewer";
+import VisualViewer from "@/components/results/VisualViewer";
+import PdfExport from "@/components/results/PdfExport";
+import MarkdownExport from "@/components/results/MarkdownExport";
+import ApiKeyInput from "@/components/results/ApiKeyInput";
+import { DocumentationResult } from "@/types/documentation";
 
 const Results = () => {
   const location = useLocation();
@@ -21,9 +19,22 @@ const Results = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   const viewportWidth = useViewportWidth();
-  const isSmallScreen = viewportWidth ? viewportWidth < 640 : false;
-  const documentRef = useRef<HTMLDivElement>(null);
-  const [exportingPdf, setExportingPdf] = useState(false);
+  const [markModeEnabled, setMarkModeEnabled] = useState(false);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+
+  const handleApiKeySubmit = (key: string, model: string) => {
+    setApiKey(key);
+    setSelectedModel(model);
+    toast.success(`${model} selected with your API key`);
+  };
+
+  const toggleMarkMode = () => {
+    setMarkModeEnabled(!markModeEnabled);
+    if (!markModeEnabled) {
+      toast.info("Mark Mode enabled. Click on text to highlight important parts.");
+    }
+  };
 
   useEffect(() => {
     // In a real implementation, we would get the actual results from the state passed in location
@@ -80,121 +91,6 @@ The project follows a test-driven development approach, with comprehensive unit 
     fetchResults();
   }, [location]);
 
-  const downloadMarkdown = () => {
-    if (!result) return;
-    
-    const element = document.createElement("a");
-    const file = new Blob([result.textContent], {type: 'text/markdown'});
-    element.href = URL.createObjectURL(file);
-    element.download = "documentation.md";
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    
-    toast.success("Downloaded documentation as Markdown");
-  };
-
-  const downloadPDF = async () => {
-    if (!result || !documentRef.current) return;
-    
-    try {
-      setExportingPdf(true);
-      toast.info("Generating PDF...");
-      
-      // Create a temporary styled div for PDF generation
-      const tempDiv = document.createElement('div');
-      tempDiv.className = 'pdf-export';
-      tempDiv.style.padding = '20px';
-      tempDiv.style.fontFamily = 'Arial, sans-serif';
-      tempDiv.style.width = '800px';
-      tempDiv.style.backgroundColor = 'white';
-      
-      // Add content to the temporary div
-      tempDiv.innerHTML = `
-        <h1 style="text-align: center; margin-bottom: 30px;">Project Documentation</h1>
-        <div style="margin-bottom: 40px;">
-          ${result.textContent.split('\n').map(line => {
-            if (line.startsWith('# ')) {
-              return `<h1 style="font-size: 24px; margin-top: 20px;">${line.replace('# ', '')}</h1>`;
-            } else if (line.startsWith('## ')) {
-              return `<h2 style="font-size: 20px; margin-top: 16px;">${line.replace('## ', '')}</h2>`;
-            } else if (line.startsWith('- ')) {
-              return `<li style="margin-left: 20px;">${line.replace('- ', '')}</li>`;
-            } else if (line.startsWith('```')) {
-              return line.includes('```typescript') ? 
-                `<pre style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; font-family: monospace;">` : 
-                '';
-            } else if (line.endsWith('```')) {
-              return `</pre>`;
-            } else if (line.trim() === '') {
-              return '<br />';
-            } else {
-              return `<p style="margin-bottom: 8px;">${line}</p>`;
-            }
-          }).join('')}
-        </div>
-      `;
-      
-      // If there's visual content, add it to the PDF
-      if (result.visualContent) {
-        tempDiv.innerHTML += `
-          <div style="margin-top: 30px; page-break-before: always;">
-            <h2 style="text-align: center; margin-bottom: 20px;">Visual Representation</h2>
-            <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; font-family: monospace; white-space: pre-wrap;">${result.visualContent}</pre>
-            <p style="text-align: center; color: #666; margin-top: 10px; font-size: 12px;">Mermaid.js diagram representation</p>
-          </div>
-        `;
-      }
-      
-      // Append to document temporarily
-      document.body.appendChild(tempDiv);
-      
-      // Create PDF
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      // Convert HTML to canvas
-      const canvas = await html2canvas(tempDiv, {
-        scale: 1,
-        useCORS: true,
-        logging: false
-      });
-      
-      // Calculate the number of pages needed
-      const imgHeight = canvas.height * pageWidth / canvas.width;
-      const totalPages = Math.ceil(imgHeight / pageHeight);
-      
-      // Add each canvas page to the PDF
-      let remainingHeight = canvas.height;
-      let position = 0;
-      
-      // Add the first page
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, imgHeight);
-      
-      // If multiple pages, add them
-      for (let i = 1; i < totalPages; i++) {
-        position = -pageHeight * i;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
-      }
-      
-      // Save the PDF
-      pdf.save('documentation.pdf');
-      
-      // Remove the temporary div
-      document.body.removeChild(tempDiv);
-      
-      toast.success("PDF generated successfully");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF");
-    } finally {
-      setExportingPdf(false);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -216,79 +112,28 @@ The project follows a test-driven development approach, with comprehensive unit 
               </Button>
             </Link>
             <h1 className="text-xl font-bold text-slate-900 w-full sm:w-auto">Documentation Results</h1>
-            <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-              <Button onClick={downloadMarkdown} className="flex-1 sm:flex-initial flex items-center gap-1 text-sm">
-                <FileDown className="h-4 w-4" />
-                Export as .md
-              </Button>
-              <Button 
-                onClick={downloadPDF} 
-                variant="outline" 
-                className="flex-1 sm:flex-initial flex items-center gap-1 text-sm"
-                disabled={exportingPdf}
-              >
-                <Download className="h-4 w-4" />
-                {exportingPdf ? "Generating..." : "Export as PDF"}
-              </Button>
+            <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-wrap">
+              <ApiKeyInput onApiKeySubmit={handleApiKeySubmit} />
+              {result && <MarkdownExport result={result} />}
+              {result && <PdfExport result={result} />}
             </div>
           </header>
 
           {result && (
-            <div className="space-y-4" ref={documentRef}>
+            <div className="space-y-4">
               {/* Text Content Panel */}
-              <div className="border rounded-lg bg-white shadow-md overflow-hidden">
-                <div className="p-3 h-full">
-                  <h2 className="text-lg font-semibold mb-2 text-slate-800">Documentation Text</h2>
-                  <ScrollArea className="h-[40vh]">
-                    <div className="prose max-w-none p-2">
-                      {result.textContent.split('\n').map((line, idx) => {
-                        if (line.startsWith('# ')) {
-                          return <h1 key={idx} className="text-xl font-bold mt-3 mb-2">{line.replace('# ', '')}</h1>;
-                        } else if (line.startsWith('## ')) {
-                          return <h2 key={idx} className="text-lg font-semibold mt-3 mb-2">{line.replace('## ', '')}</h2>;
-                        } else if (line.startsWith('- ')) {
-                          return <li key={idx} className="ml-4 mb-1">{line.replace('- ', '')}</li>;
-                        } else if (line.startsWith('```')) {
-                          return line.includes('```typescript') ? 
-                            <pre key={idx} className="bg-slate-100 p-2 rounded my-2 font-mono text-xs overflow-x-auto"></pre> : 
-                            null;
-                        } else if (line.endsWith('```')) {
-                          return null;
-                        } else if (line.trim() === '') {
-                          return <br key={idx} />;
-                        } else {
-                          return <p key={idx} className="mb-2 text-sm">{line}</p>;
-                        }
-                      })}
-                    </div>
-                  </ScrollArea>
-                </div>
-              </div>
+              <DocumentViewer 
+                content={result.textContent} 
+                isMobile={true}
+                markModeEnabled={markModeEnabled}
+                onToggleMarkMode={toggleMarkMode}
+              />
 
               {/* Visual Content Panel */}
-              <div className="border rounded-lg bg-white shadow-md overflow-hidden">
-                <div className="p-3 h-full">
-                  <h2 className="text-lg font-semibold mb-2 text-slate-800">Visual Representation</h2>
-                  <ScrollArea className="h-[40vh]">
-                    <div className="p-3 bg-slate-50 rounded-md h-full flex items-center justify-center">
-                      {result.visualContent ? (
-                        <div className="text-center">
-                          <pre className="text-left text-[10px] sm:text-xs font-mono bg-white p-3 rounded border overflow-x-auto">
-                            {result.visualContent}
-                          </pre>
-                          <p className="text-xs text-slate-500 mt-3">
-                            Visual diagram representation (Mermaid.js format)
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="text-center text-slate-500">
-                          <p className="text-sm">No visual content available for this documentation</p>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </div>
-              </div>
+              <VisualViewer 
+                visualContent={result.visualContent} 
+                isMobile={true} 
+              />
             </div>
           )}
         </div>
@@ -311,19 +156,9 @@ The project follows a test-driven development approach, with comprehensive unit 
             <h1 className="text-xl md:text-2xl font-bold text-slate-900">Documentation Results</h1>
           </div>
           <div className="flex gap-2">
-            <Button onClick={downloadMarkdown} className="flex items-center gap-1">
-              <FileDown className="h-4 w-4" />
-              Export as .md
-            </Button>
-            <Button 
-              onClick={downloadPDF} 
-              variant="outline" 
-              className="flex items-center gap-1"
-              disabled={exportingPdf}
-            >
-              <Download className="h-4 w-4" />
-              {exportingPdf ? "Generating..." : "Export as PDF"}
-            </Button>
+            <ApiKeyInput onApiKeySubmit={handleApiKeySubmit} />
+            {result && <MarkdownExport result={result} />}
+            {result && <PdfExport result={result} />}
           </div>
         </header>
 
@@ -334,59 +169,18 @@ The project follows a test-driven development approach, with comprehensive unit 
           >
             {/* Text Content Panel */}
             <ResizablePanel defaultSize={50} minSize={30}>
-              <div className="p-4 h-full" ref={documentRef}>
-                <h2 className="text-lg font-semibold mb-3 text-slate-800">Documentation Text</h2>
-                <ScrollArea className="h-[calc(70vh-60px)]">
-                  <div className="prose max-w-none p-2">
-                    {result.textContent.split('\n').map((line, idx) => {
-                      if (line.startsWith('# ')) {
-                        return <h1 key={idx} className="text-2xl font-bold mt-4 mb-2">{line.replace('# ', '')}</h1>;
-                      } else if (line.startsWith('## ')) {
-                        return <h2 key={idx} className="text-xl font-semibold mt-4 mb-2">{line.replace('## ', '')}</h2>;
-                      } else if (line.startsWith('- ')) {
-                        return <li key={idx} className="ml-4 mb-1">{line.replace('- ', '')}</li>;
-                      } else if (line.startsWith('```')) {
-                        return line.includes('```typescript') ? 
-                          <pre key={idx} className="bg-slate-100 p-3 rounded my-2 font-mono text-sm overflow-x-auto"></pre> : 
-                          null;
-                      } else if (line.endsWith('```')) {
-                        return null;
-                      } else if (line.trim() === '') {
-                        return <br key={idx} />;
-                      } else {
-                        return <p key={idx} className="mb-2">{line}</p>;
-                      }
-                    })}
-                  </div>
-                </ScrollArea>
-              </div>
+              <DocumentViewer 
+                content={result.textContent}
+                markModeEnabled={markModeEnabled}
+                onToggleMarkMode={toggleMarkMode}
+              />
             </ResizablePanel>
 
             <ResizableHandle withHandle />
 
             {/* Visual Content Panel */}
             <ResizablePanel defaultSize={50} minSize={30}>
-              <div className="p-4 h-full">
-                <h2 className="text-lg font-semibold mb-3 text-slate-800">Visual Representation</h2>
-                <ScrollArea className="h-[calc(70vh-60px)]">
-                  <div className="p-4 bg-slate-50 rounded-md h-full flex items-center justify-center">
-                    {result.visualContent ? (
-                      <div className="text-center">
-                        <pre className="text-left text-xs font-mono bg-white p-4 rounded border overflow-x-auto">
-                          {result.visualContent}
-                        </pre>
-                        <p className="text-sm text-slate-500 mt-4">
-                          Visual diagram representation (Mermaid.js format)
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="text-center text-slate-500">
-                        <p>No visual content available for this documentation</p>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </div>
+              <VisualViewer visualContent={result.visualContent} />
             </ResizablePanel>
           </ResizablePanelGroup>
         )}
