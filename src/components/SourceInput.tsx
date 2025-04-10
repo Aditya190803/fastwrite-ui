@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { InfoIcon, X, Upload } from "lucide-react";
+import { InfoIcon, X, Upload, Key } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
 interface SourceInputProps {
   sourceType: "github" | "zip";
@@ -42,6 +43,8 @@ export const SourceInput = ({
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [aiModels, setAiModels] = useState<string[]>([]);
+  const [apiKey, setApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
 
   // Define available models for each provider
   const providerModels: Record<string, string[]> = {
@@ -104,6 +107,16 @@ export const SourceInput = ({
     // Trigger the hidden file input click
     if (fileInputRef.current) {
       fileInputRef.current.click();
+    }
+  };
+
+  const handleApiKeySave = () => {
+    if (apiKey.trim()) {
+      toast.success(`API key saved for ${selectedAiModel}`);
+      setShowApiKey(false);
+      // In a real application, this would be securely stored and sent with API requests
+    } else {
+      toast.error("Please enter a valid API key");
     }
   };
 
@@ -272,6 +285,66 @@ export const SourceInput = ({
               ))}
             </SelectContent>
           </Select>
+        </div>
+      )}
+
+      {selectedAiModel && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <Label htmlFor="api-key" className="text-base font-medium">
+              API Key
+            </Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <InfoIcon className="h-4 w-4 text-slate-400" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">Enter your API key for the selected AI provider.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          
+          {showApiKey ? (
+            <div className="space-y-2">
+              <Input
+                id="api-key"
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder={`Enter your ${selectedAiProvider} API key`}
+                className="font-mono"
+              />
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowApiKey(false)}
+                  className="w-1/2"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={handleApiKeySave}
+                  className="w-1/2"
+                >
+                  Save API Key
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowApiKey(true)}
+              className="flex items-center gap-1 w-full"
+            >
+              <Key className="h-4 w-4" />
+              Set API Key
+            </Button>
+          )}
         </div>
       )}
     </div>

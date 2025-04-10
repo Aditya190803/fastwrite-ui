@@ -23,6 +23,7 @@ const Index = () => {
   // AI model state
   const [selectedAiProvider, setSelectedAiProvider] = useState<string>("openai");
   const [selectedAiModel, setSelectedAiModel] = useState<string>("");
+  const [apiKey, setApiKey] = useState<string>("");
 
   // Documentation preferences
   const [selectedCodeSections, setSelectedCodeSections] = useState<string[]>([
@@ -82,6 +83,11 @@ const Index = () => {
       formData.append("manualReferences", manualReferences);
       formData.append("aiProvider", selectedAiProvider);
       formData.append("aiModel", selectedAiModel);
+      
+      // Add API key if provided
+      if (apiKey) {
+        formData.append("apiKey", apiKey);
+      }
       
       // In a real app, we would send this to the backend
       console.log("Submitting form data:", Object.fromEntries(formData));

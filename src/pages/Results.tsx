@@ -10,7 +10,6 @@ import DocumentViewer from "@/components/results/DocumentViewer";
 import VisualViewer from "@/components/results/VisualViewer";
 import PdfExport from "@/components/results/PdfExport";
 import MarkdownExport from "@/components/results/MarkdownExport";
-import ApiKeyInput from "@/components/results/ApiKeyInput";
 import { DocumentationResult } from "@/types/documentation";
 
 const Results = () => {
@@ -20,14 +19,6 @@ const Results = () => {
   const isMobile = useIsMobile();
   const viewportWidth = useViewportWidth();
   const [markModeEnabled, setMarkModeEnabled] = useState(false);
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string | null>(null);
-
-  const handleApiKeySubmit = (key: string, model: string) => {
-    setApiKey(key);
-    setSelectedModel(model);
-    toast.success(`${model} selected with your API key`);
-  };
 
   const toggleMarkMode = () => {
     setMarkModeEnabled(!markModeEnabled);
@@ -113,7 +104,6 @@ The project follows a test-driven development approach, with comprehensive unit 
             </Link>
             <h1 className="text-xl font-bold text-slate-900 w-full sm:w-auto">Documentation Results</h1>
             <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-wrap">
-              <ApiKeyInput onApiKeySubmit={handleApiKeySubmit} />
               {result && <MarkdownExport result={result} />}
               {result && <PdfExport result={result} />}
             </div>
@@ -156,7 +146,6 @@ The project follows a test-driven development approach, with comprehensive unit 
             <h1 className="text-xl md:text-2xl font-bold text-slate-900">Documentation Results</h1>
           </div>
           <div className="flex gap-2">
-            <ApiKeyInput onApiKeySubmit={handleApiKeySubmit} />
             {result && <MarkdownExport result={result} />}
             {result && <PdfExport result={result} />}
           </div>
