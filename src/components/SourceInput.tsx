@@ -43,9 +43,7 @@ export const SourceInput = ({
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [aiModels, setAiModels] = useState<string[]>([]);
-  
-  // Store API keys for different providers
-  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
+  const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
 
   // Define available models for each provider
@@ -56,24 +54,6 @@ export const SourceInput = ({
     "openrouter": ["Claude-3-Opus", "Mistral-Large", "Phi-3"]
   };
 
-  // Load API keys from localStorage on component mount
-  useEffect(() => {
-    const loadApiKeys = () => {
-      const storedKeys: Record<string, string> = {};
-      
-      Object.keys(providerModels).forEach(provider => {
-        const key = localStorage.getItem(`ai-docgen-apikey-${provider}`);
-        if (key) {
-          storedKeys[provider] = key;
-        }
-      });
-      
-      setApiKeys(storedKeys);
-    };
-    
-    loadApiKeys();
-  }, []);
-
   // Update available models when provider changes
   useEffect(() => {
     if (selectedAiProvider) {
@@ -82,8 +62,6 @@ export const SourceInput = ({
       if (providerModels[selectedAiProvider]?.length > 0) {
         setSelectedAiModel(providerModels[selectedAiProvider][0]);
       }
-      // Reset show API key when changing provider
-      setShowApiKey(false);
     }
   }, [selectedAiProvider, setSelectedAiModel]);
 
@@ -133,32 +111,13 @@ export const SourceInput = ({
   };
 
   const handleApiKeySave = () => {
-    if (apiKeys[selectedAiProvider]?.trim()) {
-      // Store the API key for the current provider in localStorage
-      localStorage.setItem(`ai-docgen-apikey-${selectedAiProvider}`, apiKeys[selectedAiProvider]);
-      
-      toast.success(`API key for ${selectedAiProvider} saved securely in your browser`);
+    if (apiKey.trim()) {
+      toast.success(`API key saved for ${selectedAiModel}`);
       setShowApiKey(false);
+      // In a real application, this would be securely stored and sent with API requests
     } else {
       toast.error("Please enter a valid API key");
     }
-  };
-
-  const handleApiKeyChange = (value: string) => {
-    setApiKeys({
-      ...apiKeys,
-      [selectedAiProvider]: value
-    });
-  };
-
-  const handleApiKeyRemove = () => {
-    localStorage.removeItem(`ai-docgen-apikey-${selectedAiProvider}`);
-    setApiKeys({
-      ...apiKeys,
-      [selectedAiProvider]: ""
-    });
-    toast.success(`API key for ${selectedAiProvider} removed`);
-    setShowApiKey(false);
   };
 
   return (
@@ -203,15 +162,15 @@ export const SourceInput = ({
             onClick={handleFileUploadClick}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               dragActive 
-                ? "border-blue-400 bg-blue-50 dark:border-blue-600 dark:bg-blue-950/30" 
+                ? "border-blue-400 bg-blue-50" 
                 : zipFile 
-                  ? "border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-950/30" 
-                  : "border-slate-300 hover:border-slate-400 dark:border-slate-600 dark:hover:border-slate-500"
+                  ? "border-green-400 bg-green-50" 
+                  : "border-slate-300 hover:border-slate-400"
             }`}
           >
             {zipFile ? (
               <div className="flex items-center justify-center space-x-2">
-                <span className="text-green-600 dark:text-green-400 truncate max-w-xs">{zipFile.name}</span>
+                <span className="text-green-600 truncate max-w-xs">{zipFile.name}</span>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -226,8 +185,8 @@ export const SourceInput = ({
               </div>
             ) : (
               <div className="space-y-2">
-                <Upload className="h-10 w-10 text-slate-400 dark:text-slate-500 mx-auto" />
-                <p className="text-slate-600 dark:text-slate-300">Drag & drop your ZIP file here or click to browse</p>
+                <Upload className="h-10 w-10 text-slate-400 mx-auto" />
+                <p className="text-slate-600">Drag & drop your ZIP file here or click to browse</p>
                 <p className="text-sm text-slate-500">Max file size: 50MB</p>
               </div>
             )}
@@ -333,7 +292,7 @@ export const SourceInput = ({
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <Label htmlFor="api-key" className="text-base font-medium">
-              API Key for {selectedAiProvider}
+              API Key
             </Label>
             <TooltipProvider>
               <Tooltip>
@@ -341,7 +300,7 @@ export const SourceInput = ({
                   <InfoIcon className="h-4 w-4 text-slate-400" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="max-w-xs">Your API key is stored securely in your browser and never sent to our servers.</p>
+                  <p className="max-w-xs">Enter your API key for the selected AI provider.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -352,8 +311,8 @@ export const SourceInput = ({
               <Input
                 id="api-key"
                 type="password"
-                value={apiKeys[selectedAiProvider] || ""}
-                onChange={(e) => handleApiKeyChange(e.target.value)}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
                 placeholder={`Enter your ${selectedAiProvider} API key`}
                 className="font-mono"
               />
@@ -362,26 +321,16 @@ export const SourceInput = ({
                   variant="outline" 
                   size="sm" 
                   onClick={() => setShowApiKey(false)}
-                  className="w-1/3"
+                  className="w-1/2"
                 >
                   Cancel
                 </Button>
-                {apiKeys[selectedAiProvider] ? (
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={handleApiKeyRemove}
-                    className="w-1/3"
-                  >
-                    Remove Key
-                  </Button>
-                ) : null}
                 <Button 
                   size="sm" 
                   onClick={handleApiKeySave}
-                  className="w-1/3"
+                  className="w-1/2"
                 >
-                  Save Key
+                  Save API Key
                 </Button>
               </div>
             </div>
@@ -393,12 +342,9 @@ export const SourceInput = ({
               className="flex items-center gap-1 w-full"
             >
               <Key className="h-4 w-4" />
-              {apiKeys[selectedAiProvider] ? "Update API Key" : "Set API Key"}
+              Set API Key
             </Button>
           )}
-          <p className="text-xs text-slate-500 mt-1">
-            Your API key is stored only in your browser's local storage and is never sent to our servers.
-          </p>
         </div>
       )}
     </div>
