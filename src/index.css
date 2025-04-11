@@ -106,11 +106,11 @@
 
 /* Force light mode styles for Index page */
 .min-h-screen.bg-gradient-to-b.from-slate-900.to-slate-800 {
-  @apply bg-gradient-to-b from-white to-slate-100 text-slate-800;
+  background-image: linear-gradient(to bottom, white, rgb(241 245 249));
+  color: rgb(30 41 59);
 }
 
 /* Force light text colors for containers and elements */
 .container.mx-auto .text-slate-200 {
   @apply text-slate-800;
 }
-
