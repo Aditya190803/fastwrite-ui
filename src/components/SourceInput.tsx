@@ -54,13 +54,23 @@ export const SourceInput = ({
     "openrouter": ["Claude-3-Opus", "Mistral-Large", "Phi-3"]
   };
 
-  // Update available models when provider changes
+  // Load API key from localStorage when provider changes
   useEffect(() => {
     if (selectedAiProvider) {
+      // Update available models
       setAiModels(providerModels[selectedAiProvider] || []);
+      
       // Set the first model as default when changing provider
       if (providerModels[selectedAiProvider]?.length > 0) {
         setSelectedAiModel(providerModels[selectedAiProvider][0]);
+      }
+      
+      // Load API key for this provider from localStorage
+      const savedApiKey = localStorage.getItem(`apiKey_${selectedAiProvider}`);
+      if (savedApiKey) {
+        setApiKey(savedApiKey);
+      } else {
+        setApiKey(""); // Clear if no key exists for this provider
       }
     }
   }, [selectedAiProvider, setSelectedAiModel]);
@@ -86,7 +96,7 @@ export const SourceInput = ({
         setZipFile(file);
         setSourceType("zip");
       } else {
-        alert("Please upload a ZIP file.");
+        toast.error("Please upload a ZIP file.");
       }
     }
   };
@@ -98,7 +108,7 @@ export const SourceInput = ({
         setZipFile(file);
         setSourceType("zip");
       } else {
-        alert("Please upload a ZIP file.");
+        toast.error("Please upload a ZIP file.");
       }
     }
   };
@@ -112,12 +122,18 @@ export const SourceInput = ({
 
   const handleApiKeySave = () => {
     if (apiKey.trim()) {
-      toast.success(`API key saved for ${selectedAiModel}`);
+      // Save API key to localStorage based on provider
+      localStorage.setItem(`apiKey_${selectedAiProvider}`, apiKey);
+      toast.success(`API key saved for ${selectedAiProvider}`);
       setShowApiKey(false);
-      // In a real application, this would be securely stored and sent with API requests
     } else {
       toast.error("Please enter a valid API key");
     }
+  };
+
+  // Function to check if an API key exists for the current provider
+  const hasApiKey = (provider: string) => {
+    return !!localStorage.getItem(`apiKey_${provider}`);
   };
 
   return (
@@ -288,11 +304,11 @@ export const SourceInput = ({
         </div>
       )}
 
-      {selectedAiModel && (
+      {selectedAiProvider && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <Label htmlFor="api-key" className="text-base font-medium">
-              API Key
+              API Key for {selectedAiProvider}
             </Label>
             <TooltipProvider>
               <Tooltip>
@@ -300,7 +316,7 @@ export const SourceInput = ({
                   <InfoIcon className="h-4 w-4 text-slate-400" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="max-w-xs">Enter your API key for the selected AI provider.</p>
+                  <p className="max-w-xs">Your API key will be stored locally on your device and never sent to our servers.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -336,14 +352,17 @@ export const SourceInput = ({
             </div>
           ) : (
             <Button 
-              variant="outline" 
+              variant={hasApiKey(selectedAiProvider) ? "outline" : "default"}
               size="sm" 
               onClick={() => setShowApiKey(true)}
               className="flex items-center gap-1 w-full"
             >
               <Key className="h-4 w-4" />
-              Set API Key
+              {hasApiKey(selectedAiProvider) ? "Update API Key" : "Set API Key"}
             </Button>
+          )}
+          {hasApiKey(selectedAiProvider) && !showApiKey && (
+            <p className="text-sm text-green-600">API key for {selectedAiProvider} is set and stored locally</p>
           )}
         </div>
       )}

@@ -23,7 +23,6 @@ const Index = () => {
   // AI model state
   const [selectedAiProvider, setSelectedAiProvider] = useState<string>("openai");
   const [selectedAiModel, setSelectedAiModel] = useState<string>("");
-  const [apiKey, setApiKey] = useState<string>("");
 
   // Documentation preferences
   const [selectedCodeSections, setSelectedCodeSections] = useState<string[]>([
@@ -64,6 +63,13 @@ const Index = () => {
         return;
       }
       
+      // Check if API key is set for the selected provider
+      const apiKey = localStorage.getItem(`apiKey_${selectedAiProvider}`);
+      if (!apiKey) {
+        toast.error(`Please set an API key for ${selectedAiProvider}`);
+        return;
+      }
+      
       setIsLoading(true);
       
       // Create form data
@@ -84,12 +90,14 @@ const Index = () => {
       formData.append("aiProvider", selectedAiProvider);
       formData.append("aiModel", selectedAiModel);
       
-      // Add API key if provided
-      if (apiKey) {
-        formData.append("apiKey", apiKey);
-      }
+      // Get API key from localStorage (not including it in form data for security in real app)
+      // In a real app implementation, the API key would be used client-side directly
+      // to avoid sending it to the server
+      const providerApiKey = localStorage.getItem(`apiKey_${selectedAiProvider}`);
+      console.log(`Using API key for ${selectedAiProvider} (stored locally)`);
       
-      // In a real app, we would send this to the backend
+      // In a real app, we would make API calls directly from the client
+      // using the locally stored API key
       console.log("Submitting form data:", Object.fromEntries(formData));
       
       // Simulate API call
