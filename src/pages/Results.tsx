@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,49 +27,19 @@ const Results = () => {
   };
 
   useEffect(() => {
-    // In a real implementation, we would get the actual results from the state passed in location
-    // or fetch them from an API using an ID passed in the URL
     const fetchResults = async () => {
       try {
         // Simulate API call delay
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Mock data for demonstration
-        const mockResult: DocumentationResult = {
-          textContent: `# Project Documentation
-
-## Abstract
-This project implements a scalable API for managing user authentication and data processing.
-
-## Introduction
-The system is designed with a microservices architecture to ensure high availability and fault tolerance.
-
-## Function Summaries
-\`\`\`typescript
-// authenticateUser: Verifies user credentials against the database
-// processData: Handles incoming data and transforms it for storage
-// generateReport: Creates custom reports based on stored data
-\`\`\`
-
-## Class Overviews
-- **UserManager**: Handles user registration, authentication, and profile management
-- **DataProcessor**: Processes incoming data streams and applies validation rules
-- **ReportGenerator**: Generates various report formats based on processed data
-
-## Methodology
-The project follows a test-driven development approach, with comprehensive unit and integration tests.
-`,
-          visualContent: `graph TD;
-    A[Client] --> B[API];
-    B --> C[Authentication];
-    B --> D[Data Processing];
-    C --> E[Database];
-    D --> E;
-    D --> F[Report Generation];
-    F --> A;`
-        };
+        // Get the actual result from the state passed in location
+        const state = location.state as { result: DocumentationResult };
+        if (state && state.result) {
+          setResult(state.result);
+        } else {
+          throw new Error("No result data found");
+        }
         
-        setResult(mockResult);
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching results:", error);

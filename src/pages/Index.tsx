@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -96,17 +95,25 @@ const Index = () => {
       const providerApiKey = localStorage.getItem(`apiKey_${selectedAiProvider}`);
       console.log(`Using API key for ${selectedAiProvider} (stored locally)`);
       
-      // In a real app, we would make API calls directly from the client
-      // using the locally stored API key
-      console.log("Submitting form data:", Object.fromEntries(formData));
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Call the FastWrite API endpoint
+      const response = await fetch("https://fastwrite-api.onrender.com/generate", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${providerApiKey}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate documentation");
+      }
+
+      const result = await response.json();
       
       toast.success("Documentation generated successfully!");
       
-      // Navigate to results page
-      navigate("/results");
+      // Navigate to results page with the response data
+      navigate("/results", { state: { result } });
       
     } catch (error) {
       console.error("Error submitting form:", error);
