@@ -43,7 +43,15 @@ export const SourceInput = ({
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [aiModels, setAiModels] = useState<string[]>([]);
-  const [apiKey, setApiKey] = useState("");
+  
+  // Store API keys for different providers
+  const [apiKeys, setApiKeys] = useState<Record<string, string>>({
+    openai: "",
+    google: "",
+    groq: "",
+    openrouter: ""
+  });
+  
   const [showApiKey, setShowApiKey] = useState(false);
 
   // Define available models for each provider
@@ -62,6 +70,8 @@ export const SourceInput = ({
       if (providerModels[selectedAiProvider]?.length > 0) {
         setSelectedAiModel(providerModels[selectedAiProvider][0]);
       }
+      // Reset show API key when changing provider
+      setShowApiKey(false);
     }
   }, [selectedAiProvider, setSelectedAiModel]);
 
@@ -111,13 +121,24 @@ export const SourceInput = ({
   };
 
   const handleApiKeySave = () => {
-    if (apiKey.trim()) {
-      toast.success(`API key saved for ${selectedAiModel}`);
+    if (apiKeys[selectedAiProvider]?.trim()) {
+      // Store the API key for the current provider
+      setApiKeys({
+        ...apiKeys,
+        [selectedAiProvider]: apiKeys[selectedAiProvider]
+      });
+      toast.success(`API key saved for ${selectedAiProvider}`);
       setShowApiKey(false);
-      // In a real application, this would be securely stored and sent with API requests
     } else {
       toast.error("Please enter a valid API key");
     }
+  };
+
+  const handleApiKeyChange = (value: string) => {
+    setApiKeys({
+      ...apiKeys,
+      [selectedAiProvider]: value
+    });
   };
 
   return (
@@ -162,15 +183,15 @@ export const SourceInput = ({
             onClick={handleFileUploadClick}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               dragActive 
-                ? "border-blue-400 bg-blue-50" 
+                ? "border-blue-400 bg-blue-50 dark:border-blue-600 dark:bg-blue-950/30" 
                 : zipFile 
-                  ? "border-green-400 bg-green-50" 
-                  : "border-slate-300 hover:border-slate-400"
+                  ? "border-green-400 bg-green-50 dark:border-green-600 dark:bg-green-950/30" 
+                  : "border-slate-300 hover:border-slate-400 dark:border-slate-600 dark:hover:border-slate-500"
             }`}
           >
             {zipFile ? (
               <div className="flex items-center justify-center space-x-2">
-                <span className="text-green-600 truncate max-w-xs">{zipFile.name}</span>
+                <span className="text-green-600 dark:text-green-400 truncate max-w-xs">{zipFile.name}</span>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -185,8 +206,8 @@ export const SourceInput = ({
               </div>
             ) : (
               <div className="space-y-2">
-                <Upload className="h-10 w-10 text-slate-400 mx-auto" />
-                <p className="text-slate-600">Drag & drop your ZIP file here or click to browse</p>
+                <Upload className="h-10 w-10 text-slate-400 dark:text-slate-500 mx-auto" />
+                <p className="text-slate-600 dark:text-slate-300">Drag & drop your ZIP file here or click to browse</p>
                 <p className="text-sm text-slate-500">Max file size: 50MB</p>
               </div>
             )}
@@ -292,7 +313,7 @@ export const SourceInput = ({
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <Label htmlFor="api-key" className="text-base font-medium">
-              API Key
+              API Key for {selectedAiProvider}
             </Label>
             <TooltipProvider>
               <Tooltip>
@@ -300,7 +321,7 @@ export const SourceInput = ({
                   <InfoIcon className="h-4 w-4 text-slate-400" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="max-w-xs">Enter your API key for the selected AI provider.</p>
+                  <p className="max-w-xs">Enter your API key for {selectedAiProvider}.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -311,8 +332,8 @@ export const SourceInput = ({
               <Input
                 id="api-key"
                 type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                value={apiKeys[selectedAiProvider]}
+                onChange={(e) => handleApiKeyChange(e.target.value)}
                 placeholder={`Enter your ${selectedAiProvider} API key`}
                 className="font-mono"
               />
@@ -342,7 +363,7 @@ export const SourceInput = ({
               className="flex items-center gap-1 w-full"
             >
               <Key className="h-4 w-4" />
-              Set API Key
+              {apiKeys[selectedAiProvider] ? "Update API Key" : "Set API Key"}
             </Button>
           )}
         </div>

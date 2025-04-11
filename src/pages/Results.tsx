@@ -84,8 +84,8 @@ The project follows a test-driven development approach, with comprehensive unit 
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-lg md:text-xl text-slate-600">Loading documentation results...</div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-slate-200">
+        <div className="animate-pulse text-lg md:text-xl text-slate-400">Loading documentation results...</div>
       </div>
     );
   }
@@ -93,16 +93,16 @@ The project follows a test-driven development approach, with comprehensive unit 
   // For mobile devices, stack panels vertically
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-4">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-slate-200 py-4">
         <div className="container mx-auto px-4">
           <header className="flex justify-between items-center mb-4 flex-wrap gap-2">
             <Link to="/" className="w-full sm:w-auto">
-              <Button variant="outline" size="sm" className="w-full sm:w-auto">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700">
                 <ArrowLeft className="h-4 w-4 mr-1" />
                 Back to Generator
               </Button>
             </Link>
-            <h1 className="text-xl font-bold text-slate-900 w-full sm:w-auto">Documentation Results</h1>
+            <h1 className="text-xl font-bold text-slate-200 w-full sm:w-auto">Documentation Results</h1>
             <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-wrap">
               {result && <MarkdownExport result={result} />}
               {result && <PdfExport result={result} />}
@@ -133,17 +133,17 @@ The project follows a test-driven development approach, with comprehensive unit 
 
   // For desktop/tablet view
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-6 md:py-8">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-slate-200 py-6 md:py-8">
       <div className="container max-w-7xl mx-auto px-4">
         <header className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <Link to="/">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700">
                 <ArrowLeft className="h-4 w-4 mr-1" />
                 Back to Generator
               </Button>
             </Link>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Documentation Results</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-200">Documentation Results</h1>
           </div>
           <div className="flex gap-2">
             {result && <MarkdownExport result={result} />}
@@ -154,7 +154,7 @@ The project follows a test-driven development approach, with comprehensive unit 
         {result && (
           <ResizablePanelGroup
             direction="horizontal"
-            className="min-h-[70vh] border rounded-lg bg-white shadow-md overflow-hidden"
+            className="min-h-[70vh] border rounded-lg bg-slate-800 border-slate-700 shadow-md overflow-hidden"
           >
             {/* Text Content Panel */}
             <ResizablePanel defaultSize={50} minSize={30}>
@@ -165,7 +165,7 @@ The project follows a test-driven development approach, with comprehensive unit 
               />
             </ResizablePanel>
 
-            <ResizableHandle withHandle />
+            <ResizableHandle withHandle className="bg-slate-700 after:bg-slate-400" />
 
             {/* Visual Content Panel */}
             <ResizablePanel defaultSize={50} minSize={30}>
