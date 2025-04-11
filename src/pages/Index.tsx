@@ -23,7 +23,6 @@ const Index = () => {
   // AI model state
   const [selectedAiProvider, setSelectedAiProvider] = useState<string>("openai");
   const [selectedAiModel, setSelectedAiModel] = useState<string>("");
-  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
 
   // Documentation preferences
   const [selectedCodeSections, setSelectedCodeSections] = useState<string[]>([
@@ -64,6 +63,14 @@ const Index = () => {
         return;
       }
       
+      // Get API key from localStorage
+      const apiKey = localStorage.getItem(`ai-docgen-apikey-${selectedAiProvider}`);
+      
+      if (!apiKey) {
+        toast.error(`Please set your ${selectedAiProvider} API key first`);
+        return;
+      }
+      
       setIsLoading(true);
       
       // Create form data
@@ -84,10 +91,8 @@ const Index = () => {
       formData.append("aiProvider", selectedAiProvider);
       formData.append("aiModel", selectedAiModel);
       
-      // Add API key if provided for the selected provider
-      if (apiKeys[selectedAiProvider]) {
-        formData.append("apiKey", apiKeys[selectedAiProvider]);
-      }
+      // Add API key from localStorage
+      formData.append("apiKey", apiKey);
       
       // In a real app, we would send this to the backend
       console.log("Submitting form data:", Object.fromEntries(formData));

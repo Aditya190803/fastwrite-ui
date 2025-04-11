@@ -45,13 +45,7 @@ export const SourceInput = ({
   const [aiModels, setAiModels] = useState<string[]>([]);
   
   // Store API keys for different providers
-  const [apiKeys, setApiKeys] = useState<Record<string, string>>({
-    openai: "",
-    google: "",
-    groq: "",
-    openrouter: ""
-  });
-  
+  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [showApiKey, setShowApiKey] = useState(false);
 
   // Define available models for each provider
@@ -61,6 +55,24 @@ export const SourceInput = ({
     "groq": ["LLama-3-8B", "LLama-3-70B", "Mixtral-8x7B"],
     "openrouter": ["Claude-3-Opus", "Mistral-Large", "Phi-3"]
   };
+
+  // Load API keys from localStorage on component mount
+  useEffect(() => {
+    const loadApiKeys = () => {
+      const storedKeys: Record<string, string> = {};
+      
+      Object.keys(providerModels).forEach(provider => {
+        const key = localStorage.getItem(`ai-docgen-apikey-${provider}`);
+        if (key) {
+          storedKeys[provider] = key;
+        }
+      });
+      
+      setApiKeys(storedKeys);
+    };
+    
+    loadApiKeys();
+  }, []);
 
   // Update available models when provider changes
   useEffect(() => {
@@ -122,12 +134,10 @@ export const SourceInput = ({
 
   const handleApiKeySave = () => {
     if (apiKeys[selectedAiProvider]?.trim()) {
-      // Store the API key for the current provider
-      setApiKeys({
-        ...apiKeys,
-        [selectedAiProvider]: apiKeys[selectedAiProvider]
-      });
-      toast.success(`API key saved for ${selectedAiProvider}`);
+      // Store the API key for the current provider in localStorage
+      localStorage.setItem(`ai-docgen-apikey-${selectedAiProvider}`, apiKeys[selectedAiProvider]);
+      
+      toast.success(`API key for ${selectedAiProvider} saved securely in your browser`);
       setShowApiKey(false);
     } else {
       toast.error("Please enter a valid API key");
@@ -139,6 +149,16 @@ export const SourceInput = ({
       ...apiKeys,
       [selectedAiProvider]: value
     });
+  };
+
+  const handleApiKeyRemove = () => {
+    localStorage.removeItem(`ai-docgen-apikey-${selectedAiProvider}`);
+    setApiKeys({
+      ...apiKeys,
+      [selectedAiProvider]: ""
+    });
+    toast.success(`API key for ${selectedAiProvider} removed`);
+    setShowApiKey(false);
   };
 
   return (
@@ -321,7 +341,7 @@ export const SourceInput = ({
                   <InfoIcon className="h-4 w-4 text-slate-400" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="max-w-xs">Enter your API key for {selectedAiProvider}.</p>
+                  <p className="max-w-xs">Your API key is stored securely in your browser and never sent to our servers.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -332,7 +352,7 @@ export const SourceInput = ({
               <Input
                 id="api-key"
                 type="password"
-                value={apiKeys[selectedAiProvider]}
+                value={apiKeys[selectedAiProvider] || ""}
                 onChange={(e) => handleApiKeyChange(e.target.value)}
                 placeholder={`Enter your ${selectedAiProvider} API key`}
                 className="font-mono"
@@ -342,16 +362,26 @@ export const SourceInput = ({
                   variant="outline" 
                   size="sm" 
                   onClick={() => setShowApiKey(false)}
-                  className="w-1/2"
+                  className="w-1/3"
                 >
                   Cancel
                 </Button>
+                {apiKeys[selectedAiProvider] ? (
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={handleApiKeyRemove}
+                    className="w-1/3"
+                  >
+                    Remove Key
+                  </Button>
+                ) : null}
                 <Button 
                   size="sm" 
                   onClick={handleApiKeySave}
-                  className="w-1/2"
+                  className="w-1/3"
                 >
-                  Save API Key
+                  Save Key
                 </Button>
               </div>
             </div>
@@ -366,6 +396,9 @@ export const SourceInput = ({
               {apiKeys[selectedAiProvider] ? "Update API Key" : "Set API Key"}
             </Button>
           )}
+          <p className="text-xs text-slate-500 mt-1">
+            Your API key is stored only in your browser's local storage and is never sent to our servers.
+          </p>
         </div>
       )}
     </div>
