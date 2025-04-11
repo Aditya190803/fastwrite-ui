@@ -114,7 +114,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 py-4 md:py-8 text-slate-200">
+    <div className="min-h-screen bg-white py-4 md:py-8 text-slate-800">
       <div className="container mx-auto px-4 max-w-full md:max-w-4xl">
         <Header 
           title="AI Documentation Generator"
@@ -146,9 +146,9 @@ const Index = () => {
           tooltip="Choose what sections to include in your documentation."
         >
           <Tabs defaultValue="code" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6 bg-slate-700">
-              <TabsTrigger value="code" className="data-[state=active]:bg-slate-600">Code Documentation</TabsTrigger>
-              <TabsTrigger value="report" className="data-[state=active]:bg-slate-600">Academic Report</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6 bg-slate-100">
+              <TabsTrigger value="code" className="data-[state=active]:bg-slate-200">Code Documentation</TabsTrigger>
+              <TabsTrigger value="report" className="data-[state=active]:bg-slate-200">Academic Report</TabsTrigger>
             </TabsList>
             
             <DocumentationPreferences 

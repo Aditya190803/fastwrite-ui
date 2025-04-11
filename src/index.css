@@ -91,15 +91,26 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-foreground;
   }
 
-  /* Custom dark mode styles */
-  .dark .card-gradient {
-    @apply bg-slate-800 border-slate-700;
+  /* Override dark mode styles */
+  .card-gradient {
+    @apply bg-white border-slate-200;
   }
   
-  .dark .highlight-text {
-    @apply bg-blue-500/20 text-blue-300;
+  .highlight-text {
+    @apply bg-blue-500/10 text-blue-700;
   }
 }
+
+/* Force light mode styles for Index page */
+.min-h-screen.bg-gradient-to-b.from-slate-900.to-slate-800 {
+  @apply bg-gradient-to-b from-white to-slate-100 text-slate-800;
+}
+
+/* Force light text colors for containers and elements */
+.container.mx-auto .text-slate-200 {
+  @apply text-slate-800;
+}
+
