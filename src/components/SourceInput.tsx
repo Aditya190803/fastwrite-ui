@@ -47,9 +47,9 @@ export const SourceInput = ({
 
   const providerModels: Record<string, string[]> = {
     "openai": ["GPT-4o", "GPT-4o-mini", "GPT-4-turbo"],
-    "google": ["Gemini Pro", "Gemini Ultra", "Gemini Flash"],
+    "google": ["gemini-2.5-pro-preview-03-25", "gemini-2.0-flash","gemini-2.0-flash-thinking-exp-01-21","gemma-3-27b-it"],
     "groq": ["LLama-3-8B", "LLama-3-70B", "Mixtral-8x7B"],
-    "openrouter": ["Claude-3-Opus", "Mistral-Large", "Phi-3"]
+    "openrouter": ["openrouter/optimus-alpha", "meta-llama/llama-4-maverick:free", "deepseek/deepseek-chat-v3-0324:free"]
   };
 
   const providerLinks = {
