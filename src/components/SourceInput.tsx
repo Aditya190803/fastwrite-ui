@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { InfoIcon, X, Upload, Key } from "lucide-react";
+import { InfoIcon, X, Upload, Key, ExternalLink } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
@@ -52,6 +52,14 @@ export const SourceInput = ({
     "google": ["Gemini Pro", "Gemini Ultra", "Gemini Flash"],
     "groq": ["LLama-3-8B", "LLama-3-70B", "Mixtral-8x7B"],
     "openrouter": ["Claude-3-Opus", "Mistral-Large", "Phi-3"]
+  };
+
+  // API key provider links
+  const providerLinks = {
+    openai: "https://platform.openai.com/api-keys",
+    google: "https://aistudio.google.com/app/apikey",
+    groq: "https://console.groq.com/keys",
+    openrouter: "https://openrouter.ai/settings/keys"
   };
 
   // Load API key from localStorage when provider changes
@@ -332,7 +340,16 @@ export const SourceInput = ({
                 placeholder={`Enter your ${selectedAiProvider} API key`}
                 className="font-mono"
               />
-              <div className="flex gap-2">
+              <a 
+                href={providerLinks[selectedAiProvider as keyof typeof providerLinks]} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-1"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Get API key for {selectedAiProvider}
+              </a>
+              <div className="flex gap-2 mt-2">
                 <Button 
                   variant="outline" 
                   size="sm" 

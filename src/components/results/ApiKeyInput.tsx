@@ -13,7 +13,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Key } from "lucide-react";
+import { Key, ExternalLink } from "lucide-react";
 
 interface ApiKeyInputProps {
   onApiKeySubmit: (apiKey: string, model: string) => void;
@@ -43,6 +43,14 @@ const ApiKeyInput = ({ onApiKeySubmit }: ApiKeyInputProps) => {
     
     onApiKeySubmit(apiKey, selectedModel);
     toast.success(`API key for ${selectedProvider} stored on your device`);
+  };
+
+  // API key provider links
+  const providerLinks = {
+    openai: "https://platform.openai.com/api-keys",
+    google: "https://aistudio.google.com/app/apikey",
+    groq: "https://console.groq.com/keys",
+    openrouter: "https://openrouter.ai/settings/keys"
   };
 
   return (
@@ -77,6 +85,15 @@ const ApiKeyInput = ({ onApiKeySubmit }: ApiKeyInputProps) => {
               <option value="groq">Groq</option>
               <option value="openrouter">OpenRouter</option>
             </select>
+            <a 
+              href={providerLinks[selectedProvider as keyof typeof providerLinks]} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-1"
+            >
+              <ExternalLink className="h-3 w-3" />
+              Get API key for {selectedProvider}
+            </a>
           </div>
           <div className="space-y-2">
             <label htmlFor="apiKey" className="text-sm font-medium">
