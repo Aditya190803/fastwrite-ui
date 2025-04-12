@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -133,7 +132,6 @@ const Index = () => {
         return;
       }
       
-// ...existing code...
       setIsLoading(true);
       
       // Generate the same prompt that's shown in the PromptPreview component
@@ -175,6 +173,9 @@ const Index = () => {
       const promptText = `
 You are a highly skilled software documentation expert. Generate comprehensive documentation for the following project:
 
+Project Description:
+${projectDescription || "No project description provided."}
+
 ${sourceText}
 
 Generate the following code documentation sections:
@@ -196,7 +197,7 @@ Format the documentation in a clear, professional style with appropriate heading
       
       // Create request payload
       const payload = {
-        github_url: sourceType === "github" ? githubUrl : null,
+        github_url: sourceType === "github" ? githubUrl : "NULL",
         zip_file: sourceType === "github" ? "NULL" : projectDescription, // Base64-encoded ZIP string if no GitHub URL
         llm_provider: selectedAiProvider, // groq, gemini, openai, or openrouter
         llm_model: selectedAiModel,
