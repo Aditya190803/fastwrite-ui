@@ -10,6 +10,7 @@ import { PromptPreview } from "@/components/PromptPreview";
 import { Header } from "@/components/Header";
 import { CardSection } from "@/components/CardSection";
 import { SubmitButton } from "@/components/SubmitButton";
+import { DocumentationResult } from "@/types/documentation";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -72,36 +73,43 @@ const Index = () => {
       
       setIsLoading(true);
       
-      // Create form data
-      const formData = new FormData();
-      formData.append("sourceType", sourceType);
+      // Create request payload
+      const payload = {
+        source: sourceType === "github" ? "github_url" : "code_snippet",
+        content: sourceType === "github" ? githubUrl : projectDescription,
+        code_sections: selectedCodeSections,
+        report_sections: selectedReportSections,
+        references: literatureSource === "manual" ? manualReferences : "auto",
+        api_key: apiKey,
+        model: selectedAiModel
+      };
       
-      if (sourceType === "github") {
-        formData.append("githubUrl", githubUrl);
-      } else if (zipFile) {
-        formData.append("zipFile", zipFile);
+      // FastWrite API endpoint
+      const url = "https://fastwrite-api.onrender.com/generate";
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error generating documentation");
       }
       
-      formData.append("projectDescription", projectDescription);
-      formData.append("codeSections", JSON.stringify(selectedCodeSections));
-      formData.append("reportSections", JSON.stringify(selectedReportSections));
-      formData.append("literatureSource", literatureSource);
-      formData.append("manualReferences", manualReferences);
-      formData.append("aiProvider", selectedAiProvider);
-      formData.append("aiModel", selectedAiModel);
+      const result = await response.json();
       
-      // Get API key from localStorage (not including it in form data for security in real app)
-      // In a real app implementation, the API key would be used client-side directly
-      // to avoid sending it to the server
-      const providerApiKey = localStorage.getItem(`apiKey_${selectedAiProvider}`);
-      console.log(`Using API key for ${selectedAiProvider} (stored locally)`);
+      // Create a result object with the structure expected by our application
+      const documentationResult: DocumentationResult = {
+        textContent: result.text_content || result.documentation || "No text content was generated.",
+        visualContent: result.visual_content || result.diagram || ""
+      };
       
-      // In a real app, we would make API calls directly from the client
-      // using the locally stored API key
-      console.log("Submitting form data:", Object.fromEntries(formData));
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Store the result in localStorage to be used in the Results page
+      localStorage.setItem('documentationResult', JSON.stringify(documentationResult));
       
       toast.success("Documentation generated successfully!");
       
@@ -110,7 +118,7 @@ const Index = () => {
       
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("Failed to generate documentation. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Failed to generate documentation. Please try again.");
     } finally {
       setIsLoading(false);
     }

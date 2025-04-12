@@ -11,6 +11,7 @@ import VisualViewer from "@/components/results/VisualViewer";
 import PdfExport from "@/components/results/PdfExport";
 import MarkdownExport from "@/components/results/MarkdownExport";
 import { DocumentationResult } from "@/types/documentation";
+import ApiKeyInput from "@/components/results/ApiKeyInput";
 
 const Results = () => {
   const location = useLocation();
@@ -28,49 +29,26 @@ const Results = () => {
   };
 
   useEffect(() => {
-    // In a real implementation, we would get the actual results from the state passed in location
-    // or fetch them from an API using an ID passed in the URL
+    // Fetch results from localStorage
     const fetchResults = async () => {
       try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Try to get the documentation result from localStorage
+        const storedResult = localStorage.getItem('documentationResult');
         
-        // Mock data for demonstration
-        const mockResult: DocumentationResult = {
-          textContent: `# Project Documentation
-
-## Abstract
-This project implements a scalable API for managing user authentication and data processing.
-
-## Introduction
-The system is designed with a microservices architecture to ensure high availability and fault tolerance.
-
-## Function Summaries
-\`\`\`typescript
-// authenticateUser: Verifies user credentials against the database
-// processData: Handles incoming data and transforms it for storage
-// generateReport: Creates custom reports based on stored data
-\`\`\`
-
-## Class Overviews
-- **UserManager**: Handles user registration, authentication, and profile management
-- **DataProcessor**: Processes incoming data streams and applies validation rules
-- **ReportGenerator**: Generates various report formats based on processed data
-
-## Methodology
-The project follows a test-driven development approach, with comprehensive unit and integration tests.
-`,
-          visualContent: `graph TD;
-    A[Client] --> B[API];
-    B --> C[Authentication];
-    B --> D[Data Processing];
-    C --> E[Database];
-    D --> E;
-    D --> F[Report Generation];
-    F --> A;`
-        };
+        if (storedResult) {
+          const parsedResult = JSON.parse(storedResult) as DocumentationResult;
+          setResult(parsedResult);
+        } else {
+          // If no result in localStorage, use a placeholder
+          toast.error("No documentation results found. Please generate documentation first.");
+          
+          // Provide a default/placeholder content
+          setResult({
+            textContent: "# No Documentation Results Found\n\nPlease go back to the generator page and create documentation first.",
+            visualContent: ""
+          });
+        }
         
-        setResult(mockResult);
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching results:", error);
@@ -81,6 +59,12 @@ The project follows a test-driven development approach, with comprehensive unit 
 
     fetchResults();
   }, [location]);
+
+  // Handle API key updates (in case user wants to regenerate)
+  const handleApiKeySubmit = (apiKey: string, model: string) => {
+    localStorage.setItem(`apiKey_${model.split('-')[0]}`, apiKey);
+    toast.success(`API key updated successfully`);
+  };
 
   if (isLoading) {
     return (
@@ -106,6 +90,7 @@ The project follows a test-driven development approach, with comprehensive unit 
             <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-wrap">
               {result && <MarkdownExport result={result} />}
               {result && <PdfExport result={result} />}
+              <ApiKeyInput onApiKeySubmit={handleApiKeySubmit} />
             </div>
           </header>
 
@@ -120,10 +105,12 @@ The project follows a test-driven development approach, with comprehensive unit 
               />
 
               {/* Visual Content Panel */}
-              <VisualViewer 
-                visualContent={result.visualContent} 
-                isMobile={true} 
-              />
+              {result.visualContent && (
+                <VisualViewer 
+                  visualContent={result.visualContent} 
+                  isMobile={true} 
+                />
+              )}
             </div>
           )}
         </div>
@@ -148,6 +135,7 @@ The project follows a test-driven development approach, with comprehensive unit 
           <div className="flex gap-2">
             {result && <MarkdownExport result={result} />}
             {result && <PdfExport result={result} />}
+            <ApiKeyInput onApiKeySubmit={handleApiKeySubmit} />
           </div>
         </header>
 
@@ -165,12 +153,15 @@ The project follows a test-driven development approach, with comprehensive unit 
               />
             </ResizablePanel>
 
-            <ResizableHandle withHandle />
-
-            {/* Visual Content Panel */}
-            <ResizablePanel defaultSize={50} minSize={30}>
-              <VisualViewer visualContent={result.visualContent} />
-            </ResizablePanel>
+            {result.visualContent && (
+              <>
+                <ResizableHandle withHandle />
+                {/* Visual Content Panel */}
+                <ResizablePanel defaultSize={50} minSize={30}>
+                  <VisualViewer visualContent={result.visualContent} />
+                </ResizablePanel>
+              </>
+            )}
           </ResizablePanelGroup>
         )}
       </div>
