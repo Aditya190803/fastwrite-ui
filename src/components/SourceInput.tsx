@@ -1,5 +1,4 @@
-
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,7 +45,6 @@ export const SourceInput = ({
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
 
-  // Define available models for each provider
   const providerModels: Record<string, string[]> = {
     "openai": ["GPT-4o", "GPT-4o-mini", "GPT-4-turbo"],
     "google": ["Gemini Pro", "Gemini Ultra", "Gemini Flash"],
@@ -54,7 +52,6 @@ export const SourceInput = ({
     "openrouter": ["Claude-3-Opus", "Mistral-Large", "Phi-3"]
   };
 
-  // API key provider links
   const providerLinks = {
     openai: "https://platform.openai.com/api-keys",
     google: "https://aistudio.google.com/app/apikey",
@@ -62,23 +59,17 @@ export const SourceInput = ({
     openrouter: "https://openrouter.ai/settings/keys"
   };
 
-  // Load API key from localStorage when provider changes
   useEffect(() => {
     if (selectedAiProvider) {
-      // Update available models
       setAiModels(providerModels[selectedAiProvider] || []);
-      
-      // Set the first model as default when changing provider
       if (providerModels[selectedAiProvider]?.length > 0) {
         setSelectedAiModel(providerModels[selectedAiProvider][0]);
       }
-      
-      // Load API key for this provider from localStorage
       const savedApiKey = localStorage.getItem(`apiKey_${selectedAiProvider}`);
       if (savedApiKey) {
         setApiKey(savedApiKey);
       } else {
-        setApiKey(""); // Clear if no key exists for this provider
+        setApiKey("");
       }
     }
   }, [selectedAiProvider, setSelectedAiModel]);
@@ -122,7 +113,6 @@ export const SourceInput = ({
   };
 
   const handleFileUploadClick = () => {
-    // Trigger the hidden file input click
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
@@ -130,7 +120,6 @@ export const SourceInput = ({
 
   const handleApiKeySave = () => {
     if (apiKey.trim()) {
-      // Save API key to localStorage based on provider
       localStorage.setItem(`apiKey_${selectedAiProvider}`, apiKey);
       toast.success(`API key saved for ${selectedAiProvider}`);
       setShowApiKey(false);
@@ -139,7 +128,6 @@ export const SourceInput = ({
     }
   };
 
-  // Function to check if an API key exists for the current provider
   const hasApiKey = (provider: string) => {
     return !!localStorage.getItem(`apiKey_${provider}`);
   };
@@ -347,7 +335,7 @@ export const SourceInput = ({
                 className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-1"
               >
                 <ExternalLink className="h-3 w-3" />
-                Get API key for {selectedAiProvider}
+                Get default/free API key for {selectedAiProvider}
               </a>
               <div className="flex gap-2 mt-2">
                 <Button 
@@ -368,18 +356,31 @@ export const SourceInput = ({
               </div>
             </div>
           ) : (
-            <Button 
-              variant={hasApiKey(selectedAiProvider) ? "outline" : "default"}
-              size="sm" 
-              onClick={() => setShowApiKey(true)}
-              className="flex items-center gap-1 w-full"
-            >
-              <Key className="h-4 w-4" />
-              {hasApiKey(selectedAiProvider) ? "Update API Key" : "Set API Key"}
-            </Button>
-          )}
-          {hasApiKey(selectedAiProvider) && !showApiKey && (
-            <p className="text-sm text-green-600">API key for {selectedAiProvider} is set and stored locally</p>
+            <div className="space-y-2">
+              <Button 
+                variant={hasApiKey(selectedAiProvider) ? "outline" : "default"}
+                size="sm" 
+                onClick={() => setShowApiKey(true)}
+                className="flex items-center gap-1 w-full"
+              >
+                <Key className="h-4 w-4" />
+                {hasApiKey(selectedAiProvider) ? "Update API Key" : "Set API Key"}
+              </Button>
+              
+              <a 
+                href={providerLinks[selectedAiProvider as keyof typeof providerLinks]} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-1"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Get default/free API key for {selectedAiProvider}
+              </a>
+              
+              {hasApiKey(selectedAiProvider) && (
+                <p className="text-sm text-green-600">API key for {selectedAiProvider} is set and stored locally</p>
+              )}
+            </div>
           )}
         </div>
       )}
