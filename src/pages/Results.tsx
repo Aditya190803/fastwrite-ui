@@ -11,7 +11,6 @@ import VisualViewer from "@/components/results/VisualViewer";
 import PdfExport from "@/components/results/PdfExport";
 import MarkdownExport from "@/components/results/MarkdownExport";
 import { DocumentationResult } from "@/types/documentation";
-import ApiKeyInput from "@/components/results/ApiKeyInput";
 
 const Results = () => {
   const location = useLocation();
@@ -60,12 +59,6 @@ const Results = () => {
     fetchResults();
   }, [location]);
 
-  // Handle API key updates (in case user wants to regenerate)
-  const handleApiKeySubmit = (apiKey: string, model: string) => {
-    localStorage.setItem(`apiKey_${model.split('-')[0]}`, apiKey);
-    toast.success(`API key updated successfully`);
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -90,7 +83,6 @@ const Results = () => {
             <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-wrap">
               {result && <MarkdownExport result={result} />}
               {result && <PdfExport result={result} />}
-              <ApiKeyInput onApiKeySubmit={handleApiKeySubmit} />
             </div>
           </header>
 
@@ -135,7 +127,6 @@ const Results = () => {
           <div className="flex gap-2">
             {result && <MarkdownExport result={result} />}
             {result && <PdfExport result={result} />}
-            <ApiKeyInput onApiKeySubmit={handleApiKeySubmit} />
           </div>
         </header>
 
@@ -145,7 +136,7 @@ const Results = () => {
             className="min-h-[70vh] border rounded-lg bg-white shadow-md overflow-hidden"
           >
             {/* Text Content Panel */}
-            <ResizablePanel defaultSize={50} minSize={30}>
+            <ResizablePanel defaultSize={60} minSize={30}>
               <DocumentViewer 
                 content={result.textContent}
                 markModeEnabled={markModeEnabled}
@@ -157,7 +148,7 @@ const Results = () => {
               <>
                 <ResizableHandle withHandle />
                 {/* Visual Content Panel */}
-                <ResizablePanel defaultSize={50} minSize={30}>
+                <ResizablePanel defaultSize={40} minSize={30}>
                   <VisualViewer visualContent={result.visualContent} />
                 </ResizablePanel>
               </>

@@ -22,7 +22,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   // AI model state
-  const [selectedAiProvider, setSelectedAiProvider] = useState<string>("openai");
+  const [selectedAiProvider, setSelectedAiProvider] = useState<string>("google");
   const [selectedAiModel, setSelectedAiModel] = useState<string>("");
 
   // Documentation preferences
@@ -40,6 +40,68 @@ const Index = () => {
   
   const [literatureSource, setLiteratureSource] = useState<"auto" | "manual">("auto");
   const [manualReferences, setManualReferences] = useState("");
+
+  // Load saved form data from sessionStorage
+  useEffect(() => {
+    const loadSavedFormData = () => {
+      try {
+        const savedFormData = sessionStorage.getItem('documentationFormData');
+        if (savedFormData) {
+          const formData = JSON.parse(savedFormData);
+          
+          // Set form values from saved data
+          if (formData.sourceType) setSourceType(formData.sourceType);
+          if (formData.githubUrl) setGithubUrl(formData.githubUrl);
+          if (formData.projectDescription) setProjectDescription(formData.projectDescription);
+          if (formData.selectedAiProvider) setSelectedAiProvider(formData.selectedAiProvider);
+          if (formData.selectedAiModel) setSelectedAiModel(formData.selectedAiModel);
+          if (formData.selectedCodeSections) setSelectedCodeSections(formData.selectedCodeSections);
+          if (formData.selectedReportSections) setSelectedReportSections(formData.selectedReportSections);
+          if (formData.literatureSource) setLiteratureSource(formData.literatureSource);
+          if (formData.manualReferences) setManualReferences(formData.manualReferences);
+        }
+      } catch (error) {
+        console.error("Error loading saved form data:", error);
+      }
+    };
+
+    loadSavedFormData();
+  }, []);
+
+  // Save form data to sessionStorage whenever it changes
+  useEffect(() => {
+    const saveFormData = () => {
+      try {
+        const formData = {
+          sourceType,
+          githubUrl,
+          projectDescription,
+          selectedAiProvider,
+          selectedAiModel,
+          selectedCodeSections,
+          selectedReportSections,
+          literatureSource,
+          manualReferences
+        };
+        
+        sessionStorage.setItem('documentationFormData', JSON.stringify(formData));
+      } catch (error) {
+        console.error("Error saving form data:", error);
+      }
+    };
+
+    saveFormData();
+  }, [
+    sourceType,
+    githubUrl,
+    projectDescription,
+    selectedAiProvider,
+    selectedAiModel,
+    selectedCodeSections,
+    selectedReportSections,
+    literatureSource,
+    manualReferences
+  ]);
 
   const handleSubmit = async () => {
     try {

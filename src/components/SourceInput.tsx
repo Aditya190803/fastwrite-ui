@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,11 +46,36 @@ export const SourceInput = ({
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
 
+  // Updated provider models with more options
   const providerModels: Record<string, string[]> = {
     "openai": ["GPT-4o", "GPT-4o-mini", "GPT-4-turbo"],
     "google": ["gemini-2.5-pro-preview-03-25", "gemini-2.0-flash","gemini-2.0-flash-thinking-exp-01-21","gemma-3-27b-it"],
     "groq": ["LLama-3-8B", "LLama-3-70B", "Mixtral-8x7B"],
     "openrouter": ["openrouter/optimus-alpha", "meta-llama/llama-4-maverick:free", "deepseek/deepseek-chat-v3-0324:free"]
+  };
+
+  // Display friendly names for models
+  const modelDisplayNames: Record<string, string> = {
+    // OpenAI
+    "GPT-4o": "GPT-4o",
+    "GPT-4o-mini": "GPT-4o Mini",
+    "GPT-4-turbo": "GPT-4 Turbo",
+    
+    // Google
+    "gemini-2.5-pro-preview-03-25": "Gemini 2.5 Pro Preview",
+    "gemini-2.0-flash": "Gemini 2.0 Flash",
+    "gemini-2.0-flash-thinking-exp-01-21": "Gemini 2.0 Flash Thinking",
+    "gemma-3-27b-it": "Gemma 3 (27B)",
+    
+    // Groq
+    "LLama-3-8B": "Llama 3 (8B)",
+    "LLama-3-70B": "Llama 3 (70B)",
+    "Mixtral-8x7B": "Mixtral 8x7B",
+    
+    // OpenRouter
+    "openrouter/optimus-alpha": "Optimus Alpha",
+    "meta-llama/llama-4-maverick:free": "Llama 4 Maverick",
+    "deepseek/deepseek-chat-v3-0324:free": "DeepSeek Chat v3"
   };
 
   const providerLinks = {
@@ -262,8 +288,8 @@ export const SourceInput = ({
             <SelectValue placeholder="Select AI Provider" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="openai">OpenAI</SelectItem>
             <SelectItem value="google">Google</SelectItem>
+            <SelectItem value="openai">OpenAI</SelectItem>
             <SelectItem value="groq">Groq</SelectItem>
             <SelectItem value="openrouter">OpenRouter</SelectItem>
           </SelectContent>
@@ -293,7 +319,9 @@ export const SourceInput = ({
             </SelectTrigger>
             <SelectContent>
               {aiModels.map((model) => (
-                <SelectItem key={model} value={model}>{model}</SelectItem>
+                <SelectItem key={model} value={model}>
+                  {modelDisplayNames[model] || model}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -301,8 +329,8 @@ export const SourceInput = ({
       )}
 
       {selectedAiProvider && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
+        <div className="space-y-2">
+          <div className="flex justify-between items-center mb-1">
             <Label htmlFor="api-key" className="text-base font-medium">
               API Key for {selectedAiProvider}
             </Label>
@@ -318,6 +346,16 @@ export const SourceInput = ({
             </TooltipProvider>
           </div>
           
+          <a 
+            href={providerLinks[selectedAiProvider as keyof typeof providerLinks]} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 mb-2"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Get API key for {selectedAiProvider}
+          </a>
+          
           {showApiKey ? (
             <div className="space-y-2">
               <Input
@@ -328,15 +366,6 @@ export const SourceInput = ({
                 placeholder={`Enter your ${selectedAiProvider} API key`}
                 className="font-mono"
               />
-              <a 
-                href={providerLinks[selectedAiProvider as keyof typeof providerLinks]} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-1"
-              >
-                <ExternalLink className="h-3 w-3" />
-                Get default/free API key for {selectedAiProvider}
-              </a>
               <div className="flex gap-2 mt-2">
                 <Button 
                   variant="outline" 
@@ -366,16 +395,6 @@ export const SourceInput = ({
                 <Key className="h-4 w-4" />
                 {hasApiKey(selectedAiProvider) ? "Update API Key" : "Set API Key"}
               </Button>
-              
-              <a 
-                href={providerLinks[selectedAiProvider as keyof typeof providerLinks]} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-1"
-              >
-                <ExternalLink className="h-3 w-3" />
-                Get default/free API key for {selectedAiProvider}
-              </a>
               
               {hasApiKey(selectedAiProvider) && (
                 <p className="text-sm text-green-600">API key for {selectedAiProvider} is set and stored locally</p>
