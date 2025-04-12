@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,11 +5,11 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/componen
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile, useViewportWidth } from "@/hooks/use-mobile";
-import DocumentViewer from "@/components/results/DocumentViewer";
-import VisualViewer from "@/components/results/VisualViewer";
-import PdfExport from "@/components/results/PdfExport";
 import MarkdownExport from "@/components/results/MarkdownExport";
+import PdfExport from "@/components/results/PdfExport";
 import { DocumentationResult } from "@/types/documentation";
+import Mermaid from "@/components/shared/Mermaid";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 
 const Results = () => {
   const location = useLocation();
@@ -28,26 +27,21 @@ const Results = () => {
   };
 
   useEffect(() => {
-    // Fetch results from localStorage
     const fetchResults = async () => {
       try {
-        // Try to get the documentation result from localStorage
-        const storedResult = localStorage.getItem('documentationResult');
-        
+        const storedResult = localStorage.getItem("documentationResult");
+
         if (storedResult) {
           const parsedResult = JSON.parse(storedResult) as DocumentationResult;
           setResult(parsedResult);
         } else {
-          // If no result in localStorage, use a placeholder
           toast.error("No documentation results found. Please generate documentation first.");
-          
-          // Provide a default/placeholder content
           setResult({
             textContent: "# No Documentation Results Found\n\nPlease go back to the generator page and create documentation first.",
             visualContent: ""
           });
         }
-        
+
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching results:", error);
@@ -67,42 +61,60 @@ const Results = () => {
     );
   }
 
-  // For mobile devices, stack panels vertically
+  const renderVisual = () => {
+    if (!result?.visualContent) return null;
+
+    const trimmed = result.visualContent.trim();
+    const isMermaid = trimmed.startsWith("```mermaid");
+    const isGraphviz = trimmed.startsWith("```dot") || trimmed.startsWith("```graphviz");
+
+    const extractCode = (block: string) => block.replace(/```[a-z]*\n?/i, "").replace(/```$/, "").trim();
+
+    if (isMermaid) {
+      return <Mermaid chart={extractCode(trimmed)} />;
+    } else if (isGraphviz) {
+      return (
+        <div className="text-sm text-slate-700 font-mono p-4 border rounded bg-white">
+          <p className="mb-2 font-semibold">Graphviz Output (not rendered):</p>
+          <pre>{extractCode(trimmed)}</pre>
+        </div>
+      );
+    } else {
+      return (
+        <div className="text-sm text-slate-600 p-4">
+          <p className="italic">No visual format recognized.</p>
+        </div>
+      );
+    }
+  };
+
+  const RenderHeader = () => (
+    <header className="flex justify-between items-center mb-6 flex-wrap gap-3">
+      <div className="flex items-center gap-2">
+        <Link to="/">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Generator
+          </Button>
+        </Link>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900">Documentation Results</h1>
+      </div>
+      <div className="flex gap-2">
+        {result && <MarkdownExport result={result} />}
+        {result && <PdfExport result={result} />}
+      </div>
+    </header>
+  );
+
   if (isMobile) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-4">
         <div className="container mx-auto px-4">
-          <header className="flex justify-between items-center mb-4 flex-wrap gap-2">
-            <Link to="/" className="w-full sm:w-auto">
-              <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to Generator
-              </Button>
-            </Link>
-            <h1 className="text-xl font-bold text-slate-900 w-full sm:w-auto">Documentation Results</h1>
-            <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-wrap">
-              {result && <MarkdownExport result={result} />}
-              {result && <PdfExport result={result} />}
-            </div>
-          </header>
-
+          <RenderHeader />
           {result && (
-            <div className="space-y-4">
-              {/* Text Content Panel */}
-              <DocumentViewer 
-                content={result.textContent} 
-                isMobile={true}
-                markModeEnabled={markModeEnabled}
-                onToggleMarkMode={toggleMarkMode}
-              />
-
-              {/* Visual Content Panel */}
-              {result.visualContent && (
-                <VisualViewer 
-                  visualContent={result.visualContent} 
-                  isMobile={true} 
-                />
-              )}
+            <div className="space-y-6">
+              <MarkdownRenderer content={result.textContent} />
+              {renderVisual()}
             </div>
           )}
         </div>
@@ -110,46 +122,25 @@ const Results = () => {
     );
   }
 
-  // For desktop/tablet view
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-6 md:py-8">
       <div className="container max-w-7xl mx-auto px-4">
-        <header className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-2">
-            <Link to="/">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to Generator
-              </Button>
-            </Link>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Documentation Results</h1>
-          </div>
-          <div className="flex gap-2">
-            {result && <MarkdownExport result={result} />}
-            {result && <PdfExport result={result} />}
-          </div>
-        </header>
-
+        <RenderHeader />
         {result && (
           <ResizablePanelGroup
             direction="horizontal"
             className="min-h-[70vh] border rounded-lg bg-white shadow-md overflow-hidden"
           >
-            {/* Text Content Panel */}
             <ResizablePanel defaultSize={60} minSize={30}>
-              <DocumentViewer 
-                content={result.textContent}
-                markModeEnabled={markModeEnabled}
-                onToggleMarkMode={toggleMarkMode}
-              />
+              <div className="h-full p-4 overflow-y-auto">
+                <MarkdownRenderer content={result.textContent} />
+              </div>
             </ResizablePanel>
-
             {result.visualContent && (
               <>
                 <ResizableHandle withHandle />
-                {/* Visual Content Panel */}
                 <ResizablePanel defaultSize={40} minSize={30}>
-                  <VisualViewer visualContent={result.visualContent} />
+                  <div className="h-full p-4 overflow-y-auto">{renderVisual()}</div>
                 </ResizablePanel>
               </>
             )}
