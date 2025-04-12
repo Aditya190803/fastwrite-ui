@@ -133,17 +133,75 @@ const Index = () => {
         return;
       }
       
+// ...existing code...
       setIsLoading(true);
+      
+      // Generate the same prompt that's shown in the PromptPreview component
+      const sourceText = sourceType === "github" 
+        ? "Source code from the repository" 
+        : "Source code from the uploaded ZIP file";
+      
+      const codeSectionNames: Record<string, string> = {
+        inline_comments: "Inline Comments",
+        function_summaries: "Function Summaries",
+        class_overviews: "Class Overviews",
+        data_flow: "Data Flow Description",
+        code_complexity: "Code Complexity Estimates"
+      };
+      
+      const reportSectionNames: Record<string, string> = {
+        abstract: "Abstract",
+        introduction: "Introduction",
+        literature_survey: "Literature Survey",
+        methodology: "Methodology",
+        proposed_system: "Proposed System",
+        expected_results: "Expected Results",
+        conclusion: "Conclusion",
+        future_scope: "Future Scope",
+        references: "References"
+      };
+      
+      const selectedCodeSectionNames = selectedCodeSections.map(id => codeSectionNames[id] || id);
+      const selectedReportSectionNames = selectedReportSections.map(id => reportSectionNames[id] || id);
+      
+      const literatureText = selectedReportSections.includes("literature_survey")
+        ? literatureSource === "auto"
+          ? "Automatically search arXiv for relevant papers based on the repository topic."
+          : "Use the manually provided references for the literature survey."
+        : "";
+
+      const visualizationText = "Include visual elements such as code structure diagrams, class hierarchy, or data flow visualizations where appropriate. Format any visual output in Mermaid.js format.";
+
+      const promptText = `
+You are a highly skilled software documentation expert. Generate comprehensive documentation for the following project:
+
+${sourceText}
+
+Generate the following code documentation sections:
+${selectedCodeSectionNames.length > 0 
+  ? selectedCodeSectionNames.map(name => `- ${name}`).join('\n') 
+  : "No code documentation sections selected"}
+
+Generate the following academic report sections:
+${selectedReportSectionNames.length > 0 
+  ? selectedReportSectionNames.map(name => `- ${name}`).join('\n') 
+  : "No academic report sections selected"}
+
+${literatureText ? `\nFor literature review: ${literatureText}` : ""}
+
+${visualizationText}
+
+Format the documentation in a clear, professional style with appropriate headings, examples, and references. Include code snippets where relevant to illustrate key concepts.
+`.trim();
       
       // Create request payload
       const payload = {
-        source: sourceType === "github" ? "github_url" : "code_snippet",
-        content: sourceType === "github" ? githubUrl : projectDescription,
-        code_sections: selectedCodeSections,
-        report_sections: selectedReportSections,
-        references: literatureSource === "manual" ? manualReferences : "auto",
+        github_url: sourceType === "github" ? githubUrl : null,
+        zip_file: sourceType === "github" ? "NULL" : projectDescription, // Base64-encoded ZIP string if no GitHub URL
+        llm_provider: selectedAiProvider, // groq, gemini, openai, or openrouter
+        llm_model: selectedAiModel,
         api_key: apiKey,
-        model: selectedAiModel
+        prompt: promptText
       };
       
       // FastWrite API endpoint
