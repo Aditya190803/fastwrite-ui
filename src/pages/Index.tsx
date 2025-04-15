@@ -282,9 +282,28 @@ Format the documentation in a clear, professional style with appropriate heading
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-4 md:py-8">
       <div className="container mx-auto px-4 max-w-full md:max-w-4xl">
         <Header 
-          title="AI Documentation Generator"
+          title="FastWrite Web Access"
           description="Generate comprehensive documentation for your code with AI, combining technical details and academic reporting."
         />
+
+        <div className="flex justify-center space-x-4 -mt-2 mb-6">
+          <a 
+            href="https://fastwrite.kjsieit.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-block px-4 py-2 text-sm font-bold bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            About FastWrite
+          </a>
+          <a 
+            href="https://pypi.org/project/fastwrite" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-block px-4 py-2 text-sm font-bold bg-gray-600 text-white rounded-full hover:bg-gray-700 transition-colors shadow-sm"
+          >
+            PyPi
+          </a>
+        </div>
 
         <CardSection 
           title="Source Code" 
