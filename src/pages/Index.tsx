@@ -331,10 +331,10 @@ Format the documentation in a clear, professional style with appropriate heading
           title="Documentation Preferences" 
           tooltip="Choose what sections to include in your documentation."
         >
-          <Tabs defaultValue="code" className="w-full">
+          <Tabs defaultValue="report" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6">
-              <TabsTrigger value="code">Code Documentation</TabsTrigger>
               <TabsTrigger value="report">Academic Report</TabsTrigger>
+              <TabsTrigger value="code">Code Documentation</TabsTrigger>
             </TabsList>
             
             <DocumentationPreferences 

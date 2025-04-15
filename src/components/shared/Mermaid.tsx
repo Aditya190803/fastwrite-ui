@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from "react";
 import mermaid from "mermaid";
 
@@ -11,8 +12,11 @@ const Mermaid = ({ chart }: MermaidProps) => {
   useEffect(() => {
     if (ref.current) {
       mermaid.initialize({ startOnLoad: true });
-      mermaid.render("mermaid-graph", chart, (svgCode) => {
-        ref.current!.innerHTML = svgCode;
+      // Fix: Use the correct callback format
+      mermaid.render("mermaid-graph", chart).then(result => {
+        if (ref.current) {
+          ref.current.innerHTML = result.svg;
+        }
       });
     }
   }, [chart]);
