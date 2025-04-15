@@ -1,11 +1,12 @@
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DocumentationResult } from "@/types/documentation";
+import mermaid from "mermaid";
 
 interface PdfExportProps {
   result: DocumentationResult;
@@ -15,12 +16,58 @@ interface PdfExportProps {
 const PdfExport = ({ result, disabled = false }: PdfExportProps) => {
   const [exportingPdf, setExportingPdf] = useState(false);
 
+  const extractMermaidBlocks = (markdown: string) => {
+    const regex = /```mermaid\n([\s\S]*?)```/g;
+    const blocks: { content: string; position: number }[] = [];
+    
+    let match;
+    while ((match = regex.exec(markdown)) !== null) {
+      blocks.push({
+        content: match[1].trim(),
+        position: match.index
+      });
+    }
+    
+    return blocks;
+  };
+
+  const renderMermaidDiagram = async (diagram: string): Promise<string> => {
+    try {
+      mermaid.initialize({ 
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose',
+      });
+      
+      const id = `mermaid-pdf-${Math.random().toString(36).substring(2, 9)}`;
+      const { svg } = await mermaid.mermaidAPI.render(id, diagram);
+      return svg;
+    } catch (error) {
+      console.error("Failed to render mermaid diagram for PDF:", error);
+      return `<div style="color: red; padding: 10px; border: 1px solid red;">Failed to render diagram</div>`;
+    }
+  };
+
   const downloadPDF = async () => {
     if (!result) return;
     
     try {
       setExportingPdf(true);
       toast.info("Generating PDF...");
+      
+      // Extract mermaid blocks
+      const mermaidBlocks = extractMermaidBlocks(result.textContent);
+      const renderedDiagrams: { content: string; svg: string; position: number }[] = [];
+      
+      // Pre-render all mermaid diagrams
+      for (const block of mermaidBlocks) {
+        const svg = await renderMermaidDiagram(block.content);
+        renderedDiagrams.push({
+          content: block.content,
+          svg,
+          position: block.position
+        });
+      }
       
       // Create a temporary styled div for PDF generation
       const tempDiv = document.createElement('div');
@@ -30,42 +77,52 @@ const PdfExport = ({ result, disabled = false }: PdfExportProps) => {
       tempDiv.style.width = '800px';
       tempDiv.style.backgroundColor = 'white';
       
+      // Process the markdown and insert rendered diagrams
+      let processedMarkdown = result.textContent;
+      // Remove any potential ```markdown tags at the beginning
+      processedMarkdown = processedMarkdown.replace(/^```markdown\n/, '');
+      
+      // Replace mermaid blocks with placeholders
+      renderedDiagrams.forEach((diagram, index) => {
+        const mermaidBlock = `\`\`\`mermaid\n${diagram.content}\`\`\``;
+        const placeholder = `MERMAID_PLACEHOLDER_${index}`;
+        processedMarkdown = processedMarkdown.replace(mermaidBlock, placeholder);
+      });
+      
+      // Convert markdown to HTML for the PDF
+      let htmlContent = processedMarkdown.split('\n').map(line => {
+        if (line.startsWith('# ')) {
+          return `<h1 style="font-size: 24px; margin-top: 20px;">${line.replace('# ', '')}</h1>`;
+        } else if (line.startsWith('## ')) {
+          return `<h2 style="font-size: 20px; margin-top: 16px;">${line.replace('## ', '')}</h2>`;
+        } else if (line.startsWith('- ')) {
+          return `<li style="margin-left: 20px;">${line.replace('- ', '')}</li>`;
+        } else if (line.startsWith('```') && !line.includes('mermaid')) {
+          return line.includes('```typescript') ? 
+            `<pre style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; font-family: monospace;">` : 
+            '';
+        } else if (line.endsWith('```') && !line.includes('mermaid')) {
+          return `</pre>`;
+        } else if (line.trim() === '') {
+          return '<br />';
+        } else {
+          // Check for mermaid placeholders
+          for (let i = 0; i < renderedDiagrams.length; i++) {
+            if (line.includes(`MERMAID_PLACEHOLDER_${i}`)) {
+              return `<div style="margin: 20px 0; text-align: center;">${renderedDiagrams[i].svg}</div>`;
+            }
+          }
+          return `<p style="margin-bottom: 8px;">${line}</p>`;
+        }
+      }).join('');
+      
       // Add content to the temporary div
       tempDiv.innerHTML = `
         <h1 style="text-align: center; margin-bottom: 30px;">Project Documentation</h1>
         <div style="margin-bottom: 40px;">
-          ${result.textContent.split('\n').map(line => {
-            if (line.startsWith('# ')) {
-              return `<h1 style="font-size: 24px; margin-top: 20px;">${line.replace('# ', '')}</h1>`;
-            } else if (line.startsWith('## ')) {
-              return `<h2 style="font-size: 20px; margin-top: 16px;">${line.replace('## ', '')}</h2>`;
-            } else if (line.startsWith('- ')) {
-              return `<li style="margin-left: 20px;">${line.replace('- ', '')}</li>`;
-            } else if (line.startsWith('```')) {
-              return line.includes('```typescript') ? 
-                `<pre style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; font-family: monospace;">` : 
-                '';
-            } else if (line.endsWith('```')) {
-              return `</pre>`;
-            } else if (line.trim() === '') {
-              return '<br />';
-            } else {
-              return `<p style="margin-bottom: 8px;">${line}</p>`;
-            }
-          }).join('')}
+          ${htmlContent}
         </div>
       `;
-      
-      // If there's visual content, add it to the PDF
-      if (result.visualContent) {
-        tempDiv.innerHTML += `
-          <div style="margin-top: 30px; page-break-before: always;">
-            <h2 style="text-align: center; margin-bottom: 20px;">Visual Representation</h2>
-            <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; font-family: monospace; white-space: pre-wrap;">${result.visualContent}</pre>
-            <p style="text-align: center; color: #666; margin-top: 10px; font-size: 12px;">Mermaid.js diagram representation</p>
-          </div>
-        `;
-      }
       
       // Append to document temporarily
       document.body.appendChild(tempDiv);
@@ -87,7 +144,6 @@ const PdfExport = ({ result, disabled = false }: PdfExportProps) => {
       const totalPages = Math.ceil(imgHeight / pageHeight);
       
       // Add each canvas page to the PDF
-      let remainingHeight = canvas.height;
       let position = 0;
       
       // Add the first page

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import MarkdownExport from "@/components/results/MarkdownExport";
 import PdfExport from "@/components/results/PdfExport";
 import { DocumentationResult } from "@/types/documentation";
-import Mermaid from "@/components/shared/Mermaid";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 
 const Results = () => {
@@ -16,20 +16,6 @@ const Results = () => {
   const [result, setResult] = useState<DocumentationResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
-  
-  const extractMermaidBlocks = (markdown: string): string[] => {
-    const regex = /```mermaid\n([\s\S]*?)```/g;
-    const matches: string[] = [];
-    let match;
-    
-    while ((match = regex.exec(markdown)) !== null) {
-      if (match[1]) {
-        matches.push(match[1].trim());
-      }
-    }
-    
-    return matches;
-  };
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -38,6 +24,10 @@ const Results = () => {
 
         if (storedResult) {
           const parsedResult = JSON.parse(storedResult) as DocumentationResult;
+          // Remove any ```markdown tag that might be at the beginning
+          if (parsedResult.textContent.startsWith("```markdown\n")) {
+            parsedResult.textContent = parsedResult.textContent.replace(/^```markdown\n/, '');
+          }
           setResult(parsedResult);
         } else {
           toast.error("No documentation results found. Please generate documentation first.");
@@ -65,25 +55,6 @@ const Results = () => {
       </div>
     );
   }
-
-  const renderVisual = () => {
-    if (!result) return null;
-    
-    if (result.visualContent && result.visualContent.trim()) {
-      return <Mermaid chart={result.visualContent.trim()} />;
-    }
-    
-    const mermaidBlocks = extractMermaidBlocks(result.textContent);
-    if (mermaidBlocks.length > 0) {
-      return <Mermaid chart={mermaidBlocks[0]} />;
-    }
-    
-    return (
-      <div className="text-sm text-slate-600 p-4">
-        <p className="italic">No visual diagram content available.</p>
-      </div>
-    );
-  };
 
   const RenderHeader = () => (
     <header className="flex justify-between items-center mb-6 flex-wrap gap-3">
@@ -113,9 +84,6 @@ const Results = () => {
               <div className="prose max-w-none bg-white rounded-lg p-4 shadow">
                 <MarkdownRenderer content={result.textContent} />
               </div>
-              <div className="bg-white rounded-lg p-4 shadow">
-                {renderVisual()}
-              </div>
             </div>
           )}
         </div>
@@ -132,15 +100,9 @@ const Results = () => {
             direction="horizontal"
             className="min-h-[70vh] border rounded-lg bg-white shadow-md overflow-hidden"
           >
-            <ResizablePanel defaultSize={60} minSize={30}>
+            <ResizablePanel defaultSize={100} minSize={30}>
               <div className="h-full p-4 overflow-y-auto">
                 <MarkdownRenderer content={result.textContent} />
-              </div>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={40} minSize={30}>
-              <div className="h-full p-4 overflow-y-auto">
-                {renderVisual()}
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>
