@@ -13,6 +13,19 @@ interface PdfExportProps {
   disabled?: boolean;
 }
 
+// Initialize mermaid once at module level for PDF export
+let pdfMermaidInitialized = false;
+const initializePdfMermaid = () => {
+  if (!pdfMermaidInitialized) {
+    mermaid.initialize({ 
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+    });
+    pdfMermaidInitialized = true;
+  }
+};
+
 const PdfExport = ({ result, disabled = false }: PdfExportProps) => {
   const [exportingPdf, setExportingPdf] = useState(false);
 
@@ -33,14 +46,11 @@ const PdfExport = ({ result, disabled = false }: PdfExportProps) => {
 
   const renderMermaidDiagram = async (diagram: string): Promise<string> => {
     try {
-      mermaid.initialize({ 
-        startOnLoad: true,
-        theme: 'default',
-        securityLevel: 'loose',
-      });
+      // Initialize mermaid only once
+      initializePdfMermaid();
       
       const id = `mermaid-pdf-${Math.random().toString(36).substring(2, 9)}`;
-      const { svg } = await mermaid.mermaidAPI.render(id, diagram);
+      const { svg } = await mermaid.render(id, diagram);
       return svg;
     } catch (error) {
       console.error("Failed to render mermaid diagram for PDF:", error);
