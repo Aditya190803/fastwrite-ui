@@ -332,7 +332,7 @@ Format the documentation in a clear, professional style with appropriate heading
           tooltip="Choose what sections to include in your documentation."
         >
           <Tabs defaultValue="code" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="code">Code Documentation</TabsTrigger>
               <TabsTrigger value="report">Academic Report</TabsTrigger>
             </TabsList>

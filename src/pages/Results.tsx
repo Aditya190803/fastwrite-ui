@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,14 +18,6 @@ const Results = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   const viewportWidth = useViewportWidth();
-  const [markModeEnabled, setMarkModeEnabled] = useState(false);
-
-  const toggleMarkMode = () => {
-    setMarkModeEnabled(!markModeEnabled);
-    if (!markModeEnabled) {
-      toast.info("Mark Mode enabled. Click on text to highlight important parts.");
-    }
-  };
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -65,24 +58,21 @@ const Results = () => {
     if (!result?.visualContent) return null;
 
     const trimmed = result.visualContent.trim();
-    const isMermaid = trimmed.startsWith("```mermaid");
-    const isGraphviz = trimmed.startsWith("```dot") || trimmed.startsWith("```graphviz");
-
-    const extractCode = (block: string) => block.replace(/```[a-z]*\n?/i, "").replace(/```$/, "").trim();
-
-    if (isMermaid) {
-      return <Mermaid chart={extractCode(trimmed)} />;
-    } else if (isGraphviz) {
-      return (
-        <div className="text-sm text-slate-700 font-mono p-4 border rounded bg-white">
-          <p className="mb-2 font-semibold">Graphviz Output (not rendered):</p>
-          <pre>{extractCode(trimmed)}</pre>
-        </div>
-      );
+    if (trimmed.startsWith("```mermaid") && trimmed.endsWith("```")) {
+      // Extract the mermaid content without the markdown code block syntax
+      const mermaidContent = trimmed
+        .replace(/^```mermaid\n/, '')
+        .replace(/```$/, '')
+        .trim();
+      
+      return <Mermaid chart={mermaidContent} />;
     } else {
       return (
         <div className="text-sm text-slate-600 p-4">
-          <p className="italic">No visual format recognized.</p>
+          <p className="italic">Visual content available but not in mermaid format.</p>
+          <pre className="mt-2 p-3 bg-slate-50 rounded overflow-x-auto">
+            {trimmed}
+          </pre>
         </div>
       );
     }
@@ -113,8 +103,12 @@ const Results = () => {
           <RenderHeader />
           {result && (
             <div className="space-y-6">
-              <MarkdownRenderer content={result.textContent} />
-              {renderVisual()}
+              <div className="prose max-w-none bg-white rounded-lg p-4 shadow">
+                <MarkdownRenderer content={result.textContent} />
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow">
+                {renderVisual()}
+              </div>
             </div>
           )}
         </div>

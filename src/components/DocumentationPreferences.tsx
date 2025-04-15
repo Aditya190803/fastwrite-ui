@@ -50,7 +50,11 @@ export const DocumentationPreferences = ({
     { id: "function_summaries", label: "Function Summaries", description: "Generate summaries for each function/method" },
     { id: "class_overviews", label: "Class Overviews", description: "Create overview documentation for classes" },
     { id: "data_flow", label: "Data Flow Description", description: "Describe how data flows through the application" },
-    { id: "code_complexity", label: "Code Complexity Estimates", description: "Estimate complexity of different parts of the codebase" }
+    { id: "api_documentation", label: "API Documentation", description: "Document API endpoints and request/response formats" },
+    { id: "code_complexity", label: "Code Complexity Estimates", description: "Estimate complexity of different parts of the codebase" },
+    { id: "architecture_overview", label: "Architecture Overview", description: "High-level overview of code architecture" },
+    { id: "dependency_analysis", label: "Dependency Analysis", description: "Analysis of external dependencies and their usage" },
+    { id: "testing_coverage", label: "Testing Coverage", description: "Documentation of tests and coverage information" }
   ];
 
   const reportSections = [

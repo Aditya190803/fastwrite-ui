@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from "react";
 import mermaid from "mermaid";
 
@@ -10,14 +11,33 @@ const Mermaid = ({ chart }: MermaidProps) => {
 
   useEffect(() => {
     if (ref.current) {
-      mermaid.initialize({ startOnLoad: true });
-      mermaid.render("mermaid-graph", chart, (svgCode) => {
-        ref.current!.innerHTML = svgCode;
-      });
+      try {
+        mermaid.initialize({ 
+          startOnLoad: true,
+          theme: 'default',
+          securityLevel: 'loose',
+        });
+        
+        const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
+        
+        mermaid.render(id, chart, (svgCode) => {
+          if (ref.current) {
+            ref.current.innerHTML = svgCode;
+          }
+        });
+      } catch (error) {
+        console.error("Failed to render mermaid chart:", error);
+        if (ref.current) {
+          ref.current.innerHTML = `<div class="text-red-500 p-4 border border-red-300 rounded bg-red-50">
+            <p class="font-semibold">Failed to render Mermaid diagram</p>
+            <pre class="mt-2 text-xs overflow-auto">${chart}</pre>
+          </div>`;
+        }
+      }
     }
   }, [chart]);
 
-  return <div ref={ref} className="mermaid w-full overflow-auto bg-white rounded p-4 shadow" />;
+  return <div ref={ref} className="mermaid w-full overflow-auto bg-white rounded p-4" />;
 };
 
 export default Mermaid;
