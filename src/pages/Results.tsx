@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { useIsMobile, useViewportWidth } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import MarkdownExport from "@/components/results/MarkdownExport";
 import PdfExport from "@/components/results/PdfExport";
 import { DocumentationResult } from "@/types/documentation";
@@ -17,7 +16,20 @@ const Results = () => {
   const [result, setResult] = useState<DocumentationResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
-  const viewportWidth = useViewportWidth();
+  
+  const extractMermaidBlocks = (markdown: string): string[] => {
+    const regex = /```mermaid\n([\s\S]*?)```/g;
+    const matches: string[] = [];
+    let match;
+    
+    while ((match = regex.exec(markdown)) !== null) {
+      if (match[1]) {
+        matches.push(match[1].trim());
+      }
+    }
+    
+    return matches;
+  };
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -55,27 +67,22 @@ const Results = () => {
   }
 
   const renderVisual = () => {
-    if (!result?.visualContent) return null;
-
-    const trimmed = result.visualContent.trim();
-    if (trimmed.startsWith("```mermaid") && trimmed.endsWith("```")) {
-      // Extract the mermaid content without the markdown code block syntax
-      const mermaidContent = trimmed
-        .replace(/^```mermaid\n/, '')
-        .replace(/```$/, '')
-        .trim();
-      
-      return <Mermaid chart={mermaidContent} />;
-    } else {
-      return (
-        <div className="text-sm text-slate-600 p-4">
-          <p className="italic">Visual content available but not in mermaid format.</p>
-          <pre className="mt-2 p-3 bg-slate-50 rounded overflow-x-auto">
-            {trimmed}
-          </pre>
-        </div>
-      );
+    if (!result) return null;
+    
+    if (result.visualContent && result.visualContent.trim()) {
+      return <Mermaid chart={result.visualContent.trim()} />;
     }
+    
+    const mermaidBlocks = extractMermaidBlocks(result.textContent);
+    if (mermaidBlocks.length > 0) {
+      return <Mermaid chart={mermaidBlocks[0]} />;
+    }
+    
+    return (
+      <div className="text-sm text-slate-600 p-4">
+        <p className="italic">No visual diagram content available.</p>
+      </div>
+    );
   };
 
   const RenderHeader = () => (
@@ -130,14 +137,12 @@ const Results = () => {
                 <MarkdownRenderer content={result.textContent} />
               </div>
             </ResizablePanel>
-            {result.visualContent && (
-              <>
-                <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={40} minSize={30}>
-                  <div className="h-full p-4 overflow-y-auto">{renderVisual()}</div>
-                </ResizablePanel>
-              </>
-            )}
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={40} minSize={30}>
+              <div className="h-full p-4 overflow-y-auto">
+                {renderVisual()}
+              </div>
+            </ResizablePanel>
           </ResizablePanelGroup>
         )}
       </div>

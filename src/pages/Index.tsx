@@ -20,11 +20,9 @@ const Index = () => {
   const [projectDescription, setProjectDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  // AI model state
   const [selectedAiProvider, setSelectedAiProvider] = useState<string>("google");
   const [selectedAiModel, setSelectedAiModel] = useState<string>("");
 
-  // Documentation preferences
   const [selectedCodeSections, setSelectedCodeSections] = useState<string[]>([
     "inline_comments",
     "function_summaries",
@@ -40,7 +38,6 @@ const Index = () => {
   const [literatureSource, setLiteratureSource] = useState<"auto" | "manual">("auto");
   const [manualReferences, setManualReferences] = useState("");
 
-  // Load saved form data from sessionStorage
   useEffect(() => {
     const loadSavedFormData = () => {
       try {
@@ -48,7 +45,6 @@ const Index = () => {
         if (savedFormData) {
           const formData = JSON.parse(savedFormData);
           
-          // Set form values from saved data
           if (formData.sourceType) setSourceType(formData.sourceType);
           if (formData.githubUrl) setGithubUrl(formData.githubUrl);
           if (formData.projectDescription) setProjectDescription(formData.projectDescription);
@@ -67,7 +63,6 @@ const Index = () => {
     loadSavedFormData();
   }, []);
 
-  // Save form data to sessionStorage whenever it changes
   useEffect(() => {
     const saveFormData = () => {
       try {
@@ -104,7 +99,6 @@ const Index = () => {
 
   const handleSubmit = async () => {
     try {
-      // Validation
       if (sourceType === "github" && !githubUrl) {
         toast.error("Please enter a GitHub repository URL");
         return;
@@ -125,7 +119,6 @@ const Index = () => {
         return;
       }
       
-      // Check if API key is set for the selected provider
       const apiKey = localStorage.getItem(`apiKey_${selectedAiProvider}`);
       if (!apiKey) {
         toast.error(`Please set an API key for ${selectedAiProvider}`);
@@ -134,7 +127,6 @@ const Index = () => {
       
       setIsLoading(true);
       
-      // Generate the same prompt that's shown in the PromptPreview component
       const sourceText = sourceType === "github" 
         ? "Source code from the repository" 
         : "Source code from the uploaded ZIP file";
@@ -167,9 +159,9 @@ const Index = () => {
           ? "Automatically search arXiv for relevant papers based on the repository topic."
           : "Use the manually provided references for the literature survey."
         : "";
-
+      
       const visualizationText = "Include visual elements such as code structure diagrams, class hierarchy, or data flow visualizations where appropriate. Format any visual output in Mermaid.js format.";
-
+      
       const promptText = `
 You are a highly skilled software documentation expert. Generate comprehensive documentation for the following project:
 
@@ -195,22 +187,19 @@ ${visualizationText}
 Format the documentation in a clear, professional style with appropriate headings, examples, and references. Include code snippets where relevant to illustrate key concepts.
 `.trim();
       
-      // Create request payload
       const payload = {
         github_url: sourceType === "github" ? githubUrl : "NULL",
-        zip_file: sourceType === "github" ? "NULL" : projectDescription, // Base64-encoded ZIP string if no GitHub URL
-        llm_provider: selectedAiProvider, // groq, gemini, openai, or openrouter
+        zip_file: sourceType === "github" ? "NULL" : projectDescription,
+        llm_provider: selectedAiProvider,
         llm_model: selectedAiModel,
         api_key: apiKey,
         prompt: promptText
       };
       
-      // FastWrite API endpoint
       const url = "https://fastwrite-api.onrender.com/generate";
       
-      // Set a timeout for the fetch request
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
       
       try {
         const response = await fetch(url, {
@@ -235,38 +224,31 @@ Format the documentation in a clear, professional style with appropriate heading
         
         const result = await response.json();
         
-        // Generate mock result if API fails but gives a 200 response
         if (!result.text_content && !result.documentation) {
           console.warn("API returned success but no content, using fallback");
           
-          // Create a fallback result
           const fallbackResult: DocumentationResult = {
             textContent: `# Documentation Generated Offline\n\n## Project Overview\n\nThis is an offline documentation of ${sourceType === "github" ? `the GitHub repository at ${githubUrl}` : "the uploaded code"}.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3\n\n## Implementation Details\n\nThis documentation was generated offline due to API connectivity issues. Please try again later for a complete documentation.`,
             visualContent: ""
           };
           
-          // Store the fallback result
           localStorage.setItem('documentationResult', JSON.stringify(fallbackResult));
           
           toast.success("Documentation generated in offline mode");
           
-          // Navigate to results page
           navigate("/results");
           return;
         }
         
-        // Create a result object with the structure expected by our application
         const documentationResult: DocumentationResult = {
           textContent: result.text_content || result.documentation || "No text content was generated.",
           visualContent: result.visual_content || result.diagram || ""
         };
         
-        // Store the result in localStorage to be used in the Results page
         localStorage.setItem('documentationResult', JSON.stringify(documentationResult));
         
         toast.success("Documentation generated successfully!");
         
-        // Navigate to results page
         navigate("/results");
       } catch (error) {
         clearTimeout(timeoutId);
@@ -281,18 +263,15 @@ Format the documentation in a clear, professional style with appropriate heading
     } catch (error) {
       console.error("Error submitting form:", error);
       
-      // Create a fallback result in case of complete failure
       const fallbackResult: DocumentationResult = {
         textContent: `# Documentation Generation Failed\n\n## Error Information\n\nFailed to generate documentation: ${error.message || "Unknown error"}\n\n## Troubleshooting\n\n- Check your internet connection\n- Verify your API key is correct\n- Try a different AI provider\n- The API service might be temporarily unavailable\n\n## Next Steps\n\nYou can try again later or contact support if the issue persists.`,
         visualContent: ""
       };
       
-      // Store the fallback result
       localStorage.setItem('documentationResult', JSON.stringify(fallbackResult));
       
       toast.error(error instanceof Error ? error.message : "Failed to generate documentation. Using offline mode.");
       
-      // Navigate to results page with the error message
       navigate("/results");
     } finally {
       setIsLoading(false);

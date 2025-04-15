@@ -16,12 +16,15 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
   return (
     <div className="prose max-w-none text-slate-800">
       <ReactMarkdown
-        children={filteredContent}
         remarkPlugins={[remarkGfm, remarkBreaks]}
         components={{
-          code({ node, inline, className, children, ...props }) {
+          code({ className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '');
-            return !inline && match ? (
+            return !className || !match ? (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            ) : (
               <SyntaxHighlighter
                 language={match[1]}
                 style={oneLight}
@@ -30,10 +33,6 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
               >
                 {String(children).replace(/\n$/, '')}
               </SyntaxHighlighter>
-            ) : (
-              <code className={className} {...props}>
-                {children}
-              </code>
             );
           },
           h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mt-6 mb-4" {...props} />,
@@ -45,7 +44,9 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
           li: ({ node, ...props }) => <li className="my-1" {...props} />,
           blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-gray-200 pl-4 py-2 my-3 italic" {...props} />,
         }}
-      />
+      >
+        {filteredContent}
+      </ReactMarkdown>
     </div>
   );
 };
