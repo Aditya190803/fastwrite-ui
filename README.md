@@ -30,7 +30,7 @@ This project is built with:
 
 ```sh
 # Step 1: Clone the repository
-git clone https://github.com/yourusername/fastwrite-ui.git
+git clone https://github.com/aditya190803/fastwrite-ui.git
 
 # Step 2: Navigate to the project directory
 cd fastwrite-ui
