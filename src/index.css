@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 219 87% 57%; /* Primary Blue: #2E6CF6 */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -22,7 +23,7 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
+    --accent: 39 92% 57%; /* Accent Yellow: #F6B72E */
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -49,6 +50,13 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* FastWrite theme colors */
+    --fastwrite-primary: 219 87% 57%; /* #2E6CF6 */
+    --fastwrite-header: 211 39% 18%; /* #1C2D41 */
+    --fastwrite-accent: 39 92% 57%; /* #F6B72E */
+    --fastwrite-background: 220 33% 97%; /* #F5F7FA */
+    --fastwrite-text: 220 9% 35%; /* #4B5563 */
   }
 
   .dark {
@@ -61,7 +69,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    --primary: 219 87% 57%; /* Primary Blue: #2E6CF6 */
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -70,7 +78,7 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 39 92% 57%; /* Accent Yellow: #F6B72E */
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -87,6 +95,13 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* FastWrite theme colors (dark mode variants) */
+    --fastwrite-primary: 219 87% 57%; /* #2E6CF6 */
+    --fastwrite-header: 211 39% 18%; /* #1C2D41 */
+    --fastwrite-accent: 39 92% 57%; /* #F6B72E */
+    --fastwrite-background: 220 13% 10%; /* Darker variant of #F5F7FA */
+    --fastwrite-text: 220 9% 85%; /* Lighter variant of #4B5563 */
   }
 }
 
@@ -97,5 +112,28 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* FastWrite specific utility classes */
+@layer utilities {
+  .bg-fastwrite-primary {
+    @apply bg-[#2E6CF6];
+  }
+  
+  .bg-fastwrite-header {
+    @apply bg-[#1C2D41];
+  }
+  
+  .bg-fastwrite-accent {
+    @apply bg-[#F6B72E];
+  }
+  
+  .bg-fastwrite-background {
+    @apply bg-[#F5F7FA];
+  }
+  
+  .text-fastwrite-text {
+    @apply text-[#4B5563];
   }
 }

@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// FastWrite theme colors
+				fastwrite: {
+					primary: '#2E6CF6',
+					header: '#1C2D41',
+					accent: '#F6B72E',
+					background: '#F5F7FA',
+					text: '#4B5563',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

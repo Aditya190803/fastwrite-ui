@@ -46,15 +46,15 @@ export const DocumentationPreferences = ({
   };
 
   const codeSections = [
-    { id: "inline_comments", label: "Inline Comments", description: "Extract and explain comments in the code" },
-    { id: "function_summaries", label: "Function Summaries", description: "Generate summaries for each function/method" },
-    { id: "class_overviews", label: "Class Overviews", description: "Create overview documentation for classes" },
-    { id: "data_flow", label: "Data Flow Description", description: "Describe how data flows through the application" },
-    { id: "api_documentation", label: "API Documentation", description: "Document API endpoints and request/response formats" },
-    { id: "code_complexity", label: "Code Complexity Estimates", description: "Estimate complexity of different parts of the codebase" },
-    { id: "architecture_overview", label: "Architecture Overview", description: "High-level overview of code architecture" },
-    { id: "dependency_analysis", label: "Dependency Analysis", description: "Analysis of external dependencies and their usage" },
-    { id: "testing_coverage", label: "Testing Coverage", description: "Documentation of tests and coverage information" }
+    { id: "code_overview", label: "Code Overview", description: "High-level summary of the codebase structure and organization" },
+    { id: "api_endpoints", label: "API Endpoints", description: "Document API routes, methods, parameters, and responses" },
+    { id: "function_reference", label: "Function Reference", description: "Detailed documentation of key functions and methods" },
+    { id: "component_library", label: "Component Library", description: "Catalog of UI components with props and usage examples" },
+    { id: "data_models", label: "Data Models", description: "Document database schema, types, and data flow" },
+    { id: "config_options", label: "Configuration Options", description: "Document environment variables and configuration settings" },
+    { id: "setup_guide", label: "Setup Guide", description: "Instructions for setting up development environment" },
+    { id: "troubleshooting", label: "Troubleshooting", description: "Common issues and their solutions" },
+    { id: "code_examples", label: "Code Examples", description: "Practical examples for common use cases" }
   ];
 
   const reportSections = [
