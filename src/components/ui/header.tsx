@@ -18,10 +18,15 @@ export const MainHeader = () => {
         </div>
         
         <nav className="flex items-center space-x-6">
-          <Link to="/" className="flex items-center text-sm hover:text-[#F6B72E] transition-colors">
+          <a 
+            href="https://fastwrite.kjsieit.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center text-sm hover:text-[#F6B72E] transition-colors"
+          >
             <Code className="h-4 w-4 mr-1" />
             <span>Documentation</span>
-          </Link>
+          </a>
           <Link to="/results" className="flex items-center text-sm hover:text-[#F6B72E] transition-colors">
             <FileText className="h-4 w-4 mr-1" />
             <span>Results</span>
