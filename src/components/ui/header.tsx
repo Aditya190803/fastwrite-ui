@@ -25,7 +25,7 @@ export const MainHeader = () => {
             className="flex items-center text-sm hover:text-[#F6B72E] transition-colors"
           >
             <Code className="h-4 w-4 mr-1" />
-            <span>Documentation</span>
+            <span>About FastWrite</span>
           </a>
           <Link to="/results" className="flex items-center text-sm hover:text-[#F6B72E] transition-colors">
             <FileText className="h-4 w-4 mr-1" />
