@@ -9,7 +9,7 @@ export const MainHeader = () => {
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
         <div className="flex items-center mb-4 md:mb-0">
           <a 
-            href="https://fastwrite.kjsieit.com" 
+            href="/" 
             className="flex items-center"
           >
             <BookOpen className="h-6 w-6 mr-2 text-[#F6B72E]" />
