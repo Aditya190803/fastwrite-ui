@@ -8,10 +8,13 @@ export const MainHeader = () => {
     <header className="bg-[#1C2D41] text-white py-4 px-6 shadow-md">
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
         <div className="flex items-center mb-4 md:mb-0">
-          <Link to="/" className="flex items-center">
+          <a 
+            href="https://fastwrite.kjsieit.com" 
+            className="flex items-center"
+          >
             <BookOpen className="h-6 w-6 mr-2 text-[#F6B72E]" />
             <span className="text-xl font-bold">FastWrite UI</span>
-          </Link>
+          </a>
         </div>
         
         <nav className="flex items-center space-x-6">
@@ -24,7 +27,7 @@ export const MainHeader = () => {
             <span>Results</span>
           </Link>
           <a 
-            href="https://github.com/techiethemastermind/fastwrite" 
+            href="https://github.com/R-G-KJSIT/FastWrite/" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center text-sm hover:text-[#F6B72E] transition-colors"
@@ -46,3 +49,4 @@ export const MainHeader = () => {
     </header>
   );
 };
+

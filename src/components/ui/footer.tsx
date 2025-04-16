@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Github, Mail, Twitter } from "lucide-react";
+import { Github, Mail } from "lucide-react";
 
 export const MainFooter = () => {
   return (
@@ -44,20 +44,12 @@ export const MainFooter = () => {
             <h3 className="text-lg font-semibold mb-3">Connect</h3>
             <div className="flex space-x-4">
               <a 
-                href="https://github.com/techiethemastermind/fastwrite" 
+                href="https://github.com/R-G-KJSIT/FastWrite/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-[#F6B72E] transition-colors"
               >
                 <Github className="h-5 w-5" />
-              </a>
-              <a 
-                href="https://twitter.com/fastwrite" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-gray-300 hover:text-[#F6B72E] transition-colors"
-              >
-                <Twitter className="h-5 w-5" />
               </a>
               <a 
                 href="mailto:info@fastwrite.com" 
@@ -77,3 +69,4 @@ export const MainFooter = () => {
     </footer>
   );
 };
+
