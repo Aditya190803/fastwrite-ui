@@ -27,28 +27,79 @@ export const PromptPreview = ({
       ? "Source code from the repository" 
       : "Source code from the uploaded ZIP file";
     
-    const codeSectionNames: Record<string, string> = {
-      inline_comments: "Inline Comments",
-      function_summaries: "Function Summaries",
-      class_overviews: "Class Overviews",
-      data_flow: "Data Flow Description",
-      code_complexity: "Code Complexity Estimates"
+    // Code sections with descriptions
+    const codeSectionNames: Record<string, { title: string, description: string }> = {
+      inline_comments: { 
+        title: "Inline Comments", 
+        description: "Explanatory notes for individual lines of code" 
+      },
+      function_summaries: { 
+        title: "Function Summaries", 
+        description: "Brief explanations of each function's purpose and behavior" 
+      },
+      class_overviews: { 
+        title: "Class Overviews", 
+        description: "Comprehensive documentation of class structures and relationships" 
+      },
+      data_flow: { 
+        title: "Data Flow Description", 
+        description: "Explanation of how data moves through the application" 
+      },
+      code_complexity: { 
+        title: "Code Complexity Estimates", 
+        description: "Analysis of algorithmic complexity and performance considerations" 
+      }
     };
     
-    const reportSectionNames: Record<string, string> = {
-      abstract: "Abstract",
-      introduction: "Introduction",
-      literature_survey: "Literature Survey",
-      methodology: "Methodology",
-      proposed_system: "Proposed System",
-      expected_results: "Expected Results",
-      conclusion: "Conclusion",
-      future_scope: "Future Scope",
-      references: "References"
+    // Report sections with descriptions
+    const reportSectionNames: Record<string, { title: string, description: string }> = {
+      abstract: { 
+        title: "Abstract", 
+        description: "A brief summary of the entire project" 
+      },
+      introduction: { 
+        title: "Introduction", 
+        description: "Overview of the project's purpose and context" 
+      },
+      literature_survey: { 
+        title: "Literature Survey", 
+        description: "Review of related work and existing technologies" 
+      },
+      methodology: { 
+        title: "Methodology", 
+        description: "Approach and techniques used in development" 
+      },
+      proposed_system: { 
+        title: "Proposed System", 
+        description: "Detailed explanation of the system architecture and design" 
+      },
+      expected_results: { 
+        title: "Expected Results", 
+        description: "Anticipated outcomes and performance metrics" 
+      },
+      conclusion: { 
+        title: "Conclusion", 
+        description: "Summary of findings and final thoughts" 
+      },
+      future_scope: { 
+        title: "Future Scope", 
+        description: "Potential enhancements and future developments" 
+      },
+      references: { 
+        title: "References", 
+        description: "Citations and sources used in the documentation" 
+      }
     };
     
-    const selectedCodeSectionNames = selectedCodeSections.map(id => codeSectionNames[id] || id);
-    const selectedReportSectionNames = selectedReportSections.map(id => reportSectionNames[id] || id);
+    const selectedCodeSectionDetails = selectedCodeSections.map(id => {
+      const section = codeSectionNames[id] || { title: id, description: "" };
+      return `- ${section.title}: ${section.description}`;
+    });
+    
+    const selectedReportSectionDetails = selectedReportSections.map(id => {
+      const section = reportSectionNames[id] || { title: id, description: "" };
+      return `- ${section.title}: ${section.description}`;
+    });
     
     const literatureText = selectedReportSections.includes("literature_survey")
       ? literatureSource === "auto"
@@ -65,13 +116,13 @@ You are a highly skilled software documentation expert. Generate comprehensive d
 ${sourceText}
 
 Generate the following code documentation sections:
-${selectedCodeSectionNames.length > 0 
-  ? selectedCodeSectionNames.map(name => `- ${name}`).join('\n') 
+${selectedCodeSectionDetails.length > 0 
+  ? selectedCodeSectionDetails.join('\n') 
   : "No code documentation sections selected"}
 
 Generate the following academic report sections:
-${selectedReportSectionNames.length > 0 
-  ? selectedReportSectionNames.map(name => `- ${name}`).join('\n') 
+${selectedReportSectionDetails.length > 0 
+  ? selectedReportSectionDetails.join('\n') 
   : "No academic report sections selected"}
 
 ${literatureText ? `\nFor literature review: ${literatureText}` : ""}
