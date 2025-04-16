@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Code, FileText, Github } from "lucide-react";
+import { BookOpen, Code, FileText, Github, Package } from "lucide-react";
 
 export const MainHeader = () => {
   return (
@@ -10,7 +10,7 @@ export const MainHeader = () => {
         <div className="flex items-center mb-4 md:mb-0">
           <Link to="/" className="flex items-center">
             <BookOpen className="h-6 w-6 mr-2 text-[#F6B72E]" />
-            <span className="text-xl font-bold">FastWrite</span>
+            <span className="text-xl font-bold">FastWrite UI</span>
           </Link>
         </div>
         
@@ -31,6 +31,15 @@ export const MainHeader = () => {
           >
             <Github className="h-4 w-4 mr-1" />
             <span>GitHub</span>
+          </a>
+          <a 
+            href="https://pypi.org/project/fastwrite/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center text-sm hover:text-[#F6B72E] transition-colors"
+          >
+            <Package className="h-4 w-4 mr-1" />
+            <span>PyPI</span>
           </a>
         </nav>
       </div>
