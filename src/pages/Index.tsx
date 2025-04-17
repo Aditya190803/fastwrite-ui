@@ -24,9 +24,7 @@ const Index = () => {
   const [selectedAiModel, setSelectedAiModel] = useState<string>("");
 
   const [selectedCodeSections, setSelectedCodeSections] = useState<string[]>([
-    "inline_comments",
-    "function_summaries",
-    "class_overviews"
+    
   ]);
   
   const [selectedReportSections, setSelectedReportSections] = useState<string[]>([
@@ -132,9 +130,6 @@ const Index = () => {
         : "Source code from the uploaded ZIP file";
       
       const codeSectionNames: Record<string, string> = {
-        inline_comments: "Inline Comments",
-        function_summaries: "Function Summaries",
-        class_overviews: "Class Overviews",
         data_flow: "Data Flow Description",
         code_complexity: "Code Complexity Estimates"
       };
