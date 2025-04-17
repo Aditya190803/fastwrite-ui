@@ -1,4 +1,3 @@
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -27,78 +26,94 @@ export const PromptPreview = ({
       ? "Source code from the repository" 
       : "Source code from the uploaded ZIP file";
     
-    // Code sections with descriptions
-    const codeSectionNames: Record<string, { title: string, description: string }> = {
-      inline_comments: { 
-        title: "Inline Comments", 
-        description: "Explanatory notes for individual lines of code" 
+    // Code sections with descriptions - use the same data as DocumentationPreferences
+    const codeSectionNames: Record<string, { label: string, description: string }> = {
+      code_overview: { 
+        label: "Code Overview", 
+        description: "High-level summary of the codebase structure and organization" 
       },
-      function_summaries: { 
-        title: "Function Summaries", 
-        description: "Brief explanations of each function's purpose and behavior" 
+      api_endpoints: { 
+        label: "API Endpoints", 
+        description: "Document API routes, methods, parameters, and responses" 
       },
-      class_overviews: { 
-        title: "Class Overviews", 
-        description: "Comprehensive documentation of class structures and relationships" 
+      function_reference: { 
+        label: "Function Reference", 
+        description: "Detailed documentation of key functions and methods" 
       },
-      data_flow: { 
-        title: "Data Flow Description", 
-        description: "Explanation of how data moves through the application" 
+      component_library: { 
+        label: "Component Library", 
+        description: "Catalog of UI components with props and usage examples" 
       },
-      code_complexity: { 
-        title: "Code Complexity Estimates", 
-        description: "Analysis of algorithmic complexity and performance considerations" 
+      data_models: { 
+        label: "Data Models", 
+        description: "Document database schema, types, and data flow" 
+      },
+      config_options: { 
+        label: "Configuration Options", 
+        description: "Document environment variables and configuration settings" 
+      },
+      setup_guide: { 
+        label: "Setup Guide", 
+        description: "Instructions for setting up development environment" 
+      },
+      troubleshooting: { 
+        label: "Troubleshooting", 
+        description: "Common issues and their solutions" 
+      },
+      code_examples: { 
+        label: "Code Examples", 
+        description: "Practical examples for common use cases" 
       }
     };
     
-    // Report sections with descriptions
-    const reportSectionNames: Record<string, { title: string, description: string }> = {
+    // Report sections with descriptions - use the same data as DocumentationPreferences
+    const reportSectionNames: Record<string, { label: string, description: string }> = {
       abstract: { 
-        title: "Abstract", 
-        description: "A brief summary of the entire project" 
+        label: "Abstract", 
+        description: "Brief summary of the entire project" 
       },
       introduction: { 
-        title: "Introduction", 
-        description: "Overview of the project's purpose and context" 
+        label: "Introduction", 
+        description: "Overview of the problem and solution" 
       },
       literature_survey: { 
-        title: "Literature Survey", 
-        description: "Review of related work and existing technologies" 
+        label: "Literature Survey", 
+        description: "Review of related work and technologies" 
       },
       methodology: { 
-        title: "Methodology", 
-        description: "Approach and techniques used in development" 
+        label: "Methodology", 
+        description: "Approach and methods used" 
       },
       proposed_system: { 
-        title: "Proposed System", 
-        description: "Detailed explanation of the system architecture and design" 
+        label: "Proposed System", 
+        description: "Detailed description of the system architecture" 
       },
       expected_results: { 
-        title: "Expected Results", 
-        description: "Anticipated outcomes and performance metrics" 
+        label: "Expected Results", 
+        description: "Expected outcomes and performance" 
       },
       conclusion: { 
-        title: "Conclusion", 
-        description: "Summary of findings and final thoughts" 
+        label: "Conclusion", 
+        description: "Summary of findings and implementation" 
       },
       future_scope: { 
-        title: "Future Scope", 
-        description: "Potential enhancements and future developments" 
+        label: "Future Scope", 
+        description: "Potential future improvements and extensions" 
       },
       references: { 
-        title: "References", 
-        description: "Citations and sources used in the documentation" 
+        label: "References", 
+        description: "Citations and references used" 
       }
     };
     
     const selectedCodeSectionDetails = selectedCodeSections.map(id => {
-      const section = codeSectionNames[id] || { title: id, description: "" };
-      return `- ${section.title}: ${section.description}`;
+      const section = codeSectionNames[id] || { label: id, description: "" };
+      return `- ${section.label}: ${section.description}`;
     });
     
     const selectedReportSectionDetails = selectedReportSections.map(id => {
-      const section = reportSectionNames[id] || { title: id, description: "" };
-      return `- ${section.title}: ${section.description}`;
+      const section = reportSectionNames[id] || { label: id, description: "" };
+      return `- ${section.label}: ${section.description}`;
     });
     
     const literatureText = selectedReportSections.includes("literature_survey")
