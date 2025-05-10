@@ -10,6 +10,7 @@ import { Header } from "@/components/Header";
 import { CardSection } from "@/components/CardSection";
 import { SubmitButton } from "@/components/SubmitButton";
 import { DocumentationResult } from "@/types/documentation";
+import Confetti from 'react-confetti';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -35,6 +36,7 @@ const Index = () => {
   
   const [literatureSource, setLiteratureSource] = useState<"auto" | "manual">("auto");
   const [manualReferences, setManualReferences] = useState("");
+  const [runConfetti, setRunConfetti] = useState(true);
 
   useEffect(() => {
     const loadSavedFormData = () => {
@@ -276,6 +278,17 @@ Format the documentation in a clear, professional style with appropriate heading
   return (
     <div className="py-4 md:py-8">
       <div className="container mx-auto px-4 max-w-full md:max-w-4xl">
+        {runConfetti && (
+          <Confetti
+            width={window.innerWidth}
+            height={window.innerHeight}
+            recycle={false}
+            onConfettiComplete={() => setRunConfetti(false)}
+          />
+        )}
+        <div className="text-green-500 font-semibold text-center mb-2">
+          (New) FastWrite has crossed 10K downloads globally!
+        </div>
         <Header 
           title="FastWrite Documentation Generator"
           description="Generate comprehensive documentation for your code with AI, combining technical details and academic reporting."
