@@ -19,7 +19,7 @@ export const MainFooter = () => {
             <ul className="space-y-2">
               <li>
                 <a 
-                  href="https://fastwrite.kjsieit.com" 
+                  href="https://fastwrite-py.vercel.app/" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-sm text-gray-300 hover:text-[#F6B72E] transition-colors"

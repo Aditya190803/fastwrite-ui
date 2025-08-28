@@ -19,7 +19,7 @@ export const MainHeader = () => {
         
         <nav className="flex items-center space-x-6">
           <a 
-            href="https://fastwrite.kjsieit.com" 
+            href="https://fastwrite-py.vercel.app/" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center text-sm hover:text-[#F6B72E] transition-colors"
