@@ -21,7 +21,7 @@ interface ApiKeyInputProps {
 
 const ApiKeyInput = ({ onApiKeySubmit }: ApiKeyInputProps) => {
   const [apiKey, setApiKey] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gpt-4");
+  const [selectedModel, setSelectedModel] = useState("gpt-4-turbo");
   const [selectedProvider, setSelectedProvider] = useState("openai");
   
   // Load API key from localStorage when component mounts
@@ -123,26 +123,33 @@ const ApiKeyInput = ({ onApiKeySubmit }: ApiKeyInputProps) => {
             >
               {selectedProvider === "openai" && (
                 <>
-                  <option value="gpt-4">GPT-4</option>
+                  <option value="gpt-4-turbo">GPT-4 Turbo</option>
                   <option value="gpt-4o">GPT-4o</option>
+                  <option value="gpt-4o-mini">GPT-4o Mini</option>
+                  <option value="gpt-5">GPT-5</option>
                 </>
               )}
               {selectedProvider === "google" && (
                 <>
-                  <option value="gemini-pro">Gemini Pro</option>
-                  <option value="gemini-ultra">Gemini Ultra</option>
+                  <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                  <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                  <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
                 </>
               )}
               {selectedProvider === "groq" && (
                 <>
-                  <option value="llama-3">Llama 3</option>
-                  <option value="mixtral">Mixtral</option>
+                  <option value="llama-3-8b">Llama 3 (8B)</option>
+                  <option value="llama-3-70b">Llama 3 (70B)</option>
+                  <option value="mixtral-8x7b">Mixtral 8x7B</option>
+                  <option value="groq-1">Groq-1</option>
                 </>
               )}
               {selectedProvider === "openrouter" && (
                 <>
-                  <option value="claude">Claude</option>
-                  <option value="mistral">Mistral</option>
+                  <option value="minimax/minimax-m2:free">Minimax M2</option>
+                  <option value="tngtech/deepseek-r1t2-chimera:free">DeepSeek R1T2 Chimera</option>
+                  <option value="z-ai/glm-4.5-air:free">GLM 4.5 Air</option>
+                  <option value="qwen/qwen3-coder:free">Qwen3 Coder</option>
                 </>
               )}
             </select>

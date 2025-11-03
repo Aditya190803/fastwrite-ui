@@ -48,34 +48,60 @@ export const SourceInput = ({
 
   // Updated provider models with more options
   const providerModels: Record<string, string[]> = {
-    "openai": ["GPT-4o", "GPT-4o-mini", "GPT-4-turbo"],
-    "google": ["gemini-2.0-flash", "gemini-2.5-pro-preview-03-25", "gemini-2.0-flash-thinking-exp-01-21","gemma-3-27b-it"],
-    "groq": ["LLama-3-8B", "LLama-3-70B", "Mixtral-8x7B"],
-    "openrouter": ["openrouter/optimus-alpha", "meta-llama/llama-4-maverick:free", "deepseek/deepseek-chat-v3-0324:free"]
+    // OpenAI — include latest public/announced families (turbo, 4o, and 5)
+    openai: [
+      "gpt-5",
+      "gpt-4o",
+      "gpt-4o-mini",
+      "gpt-4-turbo",
+      "gpt-4o-realtime-preview",
+    ],
+
+    // Google Gemini (stable/flash/flash-lite variants)
+    google: [
+      "gemini-2.5-pro",
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite",
+      "gemini-2.0-flash",
+    ],
+
+    // Groq and similar LLMs
+    groq: ["llama-3-8b", "llama-3-70b", "mixtral-8x7b", "groq-1"],
+
+    // OpenRouter
+    openrouter: [
+      "minimax/minimax-m2:free",
+      "tngtech/deepseek-r1t2-chimera:free",
+      "z-ai/glm-4.5-air:free",
+      "qwen/qwen3-coder:free",
+    ],
   };
 
   // Display friendly names for models
   const modelDisplayNames: Record<string, string> = {
     // OpenAI
-    "GPT-4o": "GPT-4o",
-    "GPT-4o-mini": "GPT-4o Mini",
-    "GPT-4-turbo": "GPT-4 Turbo",
-    
+    "gpt-5": "GPT-5",
+    "gpt-4o": "GPT-4o",
+    "gpt-4o-mini": "GPT-4o Mini",
+    "gpt-4-turbo": "GPT-4 Turbo",
+    "gpt-4o-realtime-preview": "GPT-4o (Realtime Preview)",
+
     // Google
-    "gemini-2.5-pro-preview-03-25": "Gemini 2.5 Pro Preview",
+    "gemini-2.5-pro": "Gemini 2.5 Pro",
+    "gemini-2.5-flash": "Gemini 2.5 Flash",
+    "gemini-2.5-flash-lite": "Gemini 2.5 Flash-Lite",
     "gemini-2.0-flash": "Gemini 2.0 Flash",
-    "gemini-2.0-flash-thinking-exp-01-21": "Gemini 2.0 Flash Thinking",
-    "gemma-3-27b-it": "Gemma 3 (27B)",
-    
-    // Groq
-    "LLama-3-8B": "Llama 3 (8B)",
-    "LLama-3-70B": "Llama 3 (70B)",
-    "Mixtral-8x7B": "Mixtral 8x7B",
-    
-    // OpenRouter
-    "openrouter/optimus-alpha": "Optimus Alpha",
-    "meta-llama/llama-4-maverick:free": "Llama 4 Maverick",
-    "deepseek/deepseek-chat-v3-0324:free": "DeepSeek Chat v3"
+
+    // Groq / open models
+    "llama-3-8b": "Llama 3 (8B)",
+    "llama-3-70b": "Llama 3 (70B)",
+    "mixtral-8x7b": "Mixtral 8x7B",
+    "groq-1": "Groq-1",
+
+    "minimax/minimax-m2:free": "Minimax M2",
+    "tngtech/deepseek-r1t2-chimera:free": "DeepSeek R1T2 Chimera",
+    "z-ai/glm-4.5-air:free": "GLM 4.5 Air",
+    "qwen/qwen3-coder:free": "Qwen3 Coder",
   };
 
   const providerLinks = {
@@ -225,7 +251,7 @@ export const SourceInput = ({
               <div className="space-y-2">
                 <Upload className="h-10 w-10 text-slate-400 mx-auto" />
                 <p className="text-slate-600">Drag & drop your ZIP file here or click to browse</p>
-                <p className="text-sm text-slate-500">Max file size: 50MB</p>
+                <p className="text-sm text-slate-500">Max file size: 100MB</p>
               </div>
             )}
             <input
