@@ -17,7 +17,12 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
         <div className="flex flex-col min-h-screen">
           <MainHeader />
           <main className="flex-grow bg-[#F5F7FA]">
