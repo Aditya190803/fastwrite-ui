@@ -10,6 +10,7 @@ import MarkdownExport from "@/components/results/MarkdownExport";
 import PdfExport from "@/components/results/PdfExport";
 import { DocumentationResult } from "@/types/documentation";
 import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
+import { cleanGeneratedText } from "@/lib/documentation";
 
 const Results = () => {
   const location = useLocation();
@@ -28,6 +29,7 @@ const Results = () => {
           if (parsedResult.textContent.startsWith("```markdown\n")) {
             parsedResult.textContent = parsedResult.textContent.replace(/^```markdown\n/, '');
           }
+          parsedResult.textContent = cleanGeneratedText(parsedResult.textContent);
           setResult(parsedResult);
         } else {
           toast.error("No documentation results found. Please generate documentation first.");
@@ -47,6 +49,40 @@ const Results = () => {
 
     fetchResults();
   }, [location]);
+
+  useEffect(() => {
+    const handleDiagramUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{ previous: string; next: string }>;
+      const { previous, next } = customEvent.detail || {};
+      if (!previous || !next) {
+        return;
+      }
+
+      setResult((current) => {
+        if (!current || !current.textContent || !current.textContent.includes(previous)) {
+          return current;
+        }
+
+        const updatedText = current.textContent.replace(previous, next);
+        if (updatedText === current.textContent) {
+          return current;
+        }
+
+        const updatedResult = { ...current, textContent: updatedText };
+        try {
+          localStorage.setItem("documentationResult", JSON.stringify(updatedResult));
+        } catch (storageError) {
+          console.error("Failed to persist updated diagram:", storageError);
+        }
+        return updatedResult;
+      });
+    };
+
+    window.addEventListener("documentation:diagram-updated", handleDiagramUpdate as EventListener);
+    return () => {
+      window.removeEventListener("documentation:diagram-updated", handleDiagramUpdate as EventListener);
+    };
+  }, []);
 
   if (isLoading) {
     return (

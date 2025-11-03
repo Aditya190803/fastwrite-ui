@@ -10,6 +10,7 @@ import { Header } from "@/components/Header";
 import { CardSection } from "@/components/CardSection";
 import { SubmitButton } from "@/components/SubmitButton";
 import { DocumentationResult } from "@/types/documentation";
+import { cleanGeneratedText } from "@/lib/documentation";
 import Confetti from 'react-confetti';
 
 const Index = () => {
@@ -29,9 +30,9 @@ const Index = () => {
   ]);
   
   const [selectedReportSections, setSelectedReportSections] = useState<string[]>([
-    "abstract",
-    "introduction",
-    "methodology"
+    "overview",
+    "features",
+    "architecture"
   ]);
   
   const [literatureSource, setLiteratureSource] = useState<"auto" | "manual">("auto");
@@ -215,34 +216,82 @@ Format the documentation in a clear, professional style with appropriate heading
       };
       
       const url = "https://fastwrite-api.onrender.com/generate";
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          if (response.status === 429) {
-            throw new Error("Rate limit exceeded. Please try again later.");
-          } else {
+      const REQUEST_TIMEOUT_MS = 120000;
+      const MAX_RETRIES = 1;
+
+      interface GenerateResponse {
+        text_content?: string;
+        documentation?: string;
+        visual_content?: string;
+        diagram?: string;
+        message?: string;
+      }
+
+      const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+      const sendGenerateRequest = async (attempt = 0): Promise<GenerateResponse> => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+          });
+
+          if (!response.ok) {
+            const isRateLimited = response.status === 429;
+            const isServerError = response.status >= 500 && response.status < 600;
             const errorData = await response.json().catch(() => ({ message: "Unknown server error" }));
-            throw new Error(errorData.message || `Server error: ${response.status}`);
+            const message = isRateLimited
+              ? "Rate limit exceeded. Please try again later."
+              : errorData.message || `Server error: ${response.status}`;
+
+            if (isServerError && attempt < MAX_RETRIES) {
+              console.warn(`Generate request failed with ${response.status}. Retrying…`);
+              toast.info("The server hiccupped. Trying again…");
+              await sleep(1500);
+              return sendGenerateRequest(attempt + 1);
+            }
+
+            throw new Error(message);
           }
+
+          const data: GenerateResponse = await response.json();
+          return data;
+        } catch (error) {
+          const shouldRetry = attempt < MAX_RETRIES;
+
+          if (error instanceof Error && error.name === "AbortError") {
+            if (shouldRetry) {
+              console.warn("Generate request timed out. Retrying…");
+              toast.info("Request timed out. Retrying…");
+              await sleep(1500);
+              return sendGenerateRequest(attempt + 1);
+            }
+            throw new Error("Request timed out. The server might be overloaded.");
+          }
+
+          if (shouldRetry) {
+            console.warn("Generate request failed. Retrying…", error);
+            toast.info("Temporary issue detected. Trying again…");
+            await sleep(1500);
+            return sendGenerateRequest(attempt + 1);
+          }
+
+          throw error instanceof Error ? error : new Error("Failed to contact the documentation service.");
+        } finally {
+          clearTimeout(timeoutId);
         }
-        
-        const result = await response.json();
-        
-        if (!result.text_content && !result.documentation) {
+      };
+
+      const result = await sendGenerateRequest();
+
+      if (!result.text_content && !result.documentation) {
           console.warn("API returned success but no content, using fallback");
           
           const fallbackResult: DocumentationResult = {
@@ -258,38 +307,41 @@ Format the documentation in a clear, professional style with appropriate heading
           return;
         }
         
+        const cleanedText = cleanGeneratedText(result.text_content || result.documentation || "");
+
         const documentationResult: DocumentationResult = {
-          textContent: result.text_content || result.documentation || "No text content was generated.",
+          textContent: cleanedText || "No text content was generated.",
           visualContent: result.visual_content || result.diagram || ""
         };
         
         localStorage.setItem('documentationResult', JSON.stringify(documentationResult));
+        const generationMetadata = {
+          provider: selectedAiProvider,
+          model: selectedAiModel,
+          prompt: promptText,
+          generatedAt: Date.now()
+        };
+        localStorage.setItem('documentationGenerationMeta', JSON.stringify(generationMetadata));
         
         toast.success("Documentation generated successfully!");
         
         navigate("/results");
-      } catch (error) {
-        clearTimeout(timeoutId);
-        
-        if (error.name === 'AbortError') {
-          throw new Error("Request timed out. The server might be overloaded.");
-        }
-        
-        throw error;
-      }
       
     } catch (error) {
       console.error("Error submitting form:", error);
-      
+
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const fallbackText = `# Documentation Generation Failed\n\n## Error Information\n\nFailed to generate documentation: ${errorMessage}\n\n## Troubleshooting\n\n- Check your internet connection\n- Verify your API key is correct\n- Try a different AI provider\n- The API service might be temporarily unavailable\n\n## Next Steps\n\nYou can try again later or contact support if the issue persists.`;
+
       const fallbackResult: DocumentationResult = {
-        textContent: `# Documentation Generation Failed\n\n## Error Information\n\nFailed to generate documentation: ${error.message || "Unknown error"}\n\n## Troubleshooting\n\n- Check your internet connection\n- Verify your API key is correct\n- Try a different AI provider\n- The API service might be temporarily unavailable\n\n## Next Steps\n\nYou can try again later or contact support if the issue persists.`,
+        textContent: cleanGeneratedText(fallbackText) || fallbackText,
         visualContent: ""
       };
-      
+
       localStorage.setItem('documentationResult', JSON.stringify(fallbackResult));
-      
-      toast.error(error instanceof Error ? error.message : "Failed to generate documentation. Using offline mode.");
-      
+
+      toast.error(errorMessage === "Unknown error" ? "Failed to generate documentation. Using offline mode." : errorMessage);
+
       navigate("/results");
     } finally {
       setIsLoading(false);
