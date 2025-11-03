@@ -108,6 +108,12 @@ const Index = () => {
         toast.error("Please upload a ZIP file");
         return;
       }
+
+      // Validate ZIP file size (max 100MB)
+      if (sourceType === "zip" && zipFile && zipFile.size > 100 * 1024 * 1024) {
+        toast.error("ZIP file size exceeds 100MB limit. Please upload a smaller file.");
+        return;
+      }
       
       if (selectedCodeSections.length === 0 && selectedReportSections.length === 0) {
         toast.error("Please select at least one documentation section");
@@ -126,6 +132,21 @@ const Index = () => {
       }
       
       setIsLoading(true);
+      
+      // Convert ZIP file to Base64 if sourceType is "zip"
+      let zipFileData: string | null = null;
+      if (sourceType === "zip" && zipFile) {
+        zipFileData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            // Extract base64 part (remove data:application/zip;base64, prefix)
+            resolve(result.split(',')[1]);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(zipFile);
+        });
+      }
       
       const sourceText = sourceType === "github" 
         ? "Source code from the repository" 
@@ -186,7 +207,7 @@ Format the documentation in a clear, professional style with appropriate heading
       
       const payload = {
         github_url: sourceType === "github" ? githubUrl : "NULL",
-        zip_file: sourceType === "github" ? "NULL" : projectDescription,
+        zip_file: sourceType === "zip" ? zipFileData : "NULL",
         llm_provider: selectedAiProvider,
         llm_model: selectedAiModel,
         api_key: apiKey,
