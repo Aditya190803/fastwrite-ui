@@ -19,6 +19,11 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				heading: ['Syne', 'sans-serif'],
+				body: ['Hanken Grotesk', 'sans-serif'],
+				mono: ['JetBrains Mono', 'monospace'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -63,13 +68,14 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// FastWrite theme colors
-				fastwrite: {
-					primary: '#2E6CF6',
-					header: '#1C2D41',
-					accent: '#F6B72E',
-					background: '#F5F7FA',
-					text: '#4B5563',
+				// Kinetic Industrial palette
+				kinetic: {
+					black: '#050505',
+					surface: '#0F0F11',
+					accent: '#D4FF00',
+					border: '#1F1F23',
+					muted: '#88888D',
+					glass: 'rgba(15, 15, 17, 0.7)',
 				},
 			},
 			borderRadius: {
