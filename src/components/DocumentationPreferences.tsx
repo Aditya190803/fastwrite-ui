@@ -1,12 +1,12 @@
-
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { TabsContent } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, Search, FileText, Database, Activity } from "lucide-react";
+import { CODE_SECTIONS, REPORT_SECTIONS } from "@/lib/constants";
 
 interface DocumentationPreferencesProps {
   selectedCodeSections: string[];
@@ -18,6 +18,36 @@ interface DocumentationPreferencesProps {
   manualReferences: string;
   setManualReferences: (references: string) => void;
 }
+
+const PreferenceCard = ({ id, label, description, checked, onChange, icon: Icon }: any) => (
+  <motion.div 
+    whileHover={{ x: 4 }}
+    className={`group flex items-start gap-4 p-5 transition-all border ${checked ? 'border-primary bg-primary/5' : 'border-white/5 bg-black/20 hover:bg-black/40 hover:border-white/10'}`}
+  >
+    <div className="pt-1">
+      <Checkbox 
+        id={id}
+        checked={checked}
+        onCheckedChange={(c) => onChange(c as boolean)}
+        className="rounded-none border-white/20 data-[state=checked]:bg-primary data-[state=checked]:text-black"
+      />
+    </div>
+    <div className="space-y-2 flex-1">
+      <div className="flex items-center gap-2">
+        <Label 
+          htmlFor={id} 
+          className="font-heading text-xs uppercase tracking-[0.15em] cursor-pointer text-white group-hover:text-primary transition-colors"
+        >
+          {label}
+        </Label>
+        {Icon && <Icon size={14} className="text-muted-foreground opacity-40 group-hover:opacity-100 transition-opacity" />}
+      </div>
+      <p className="text-[10px] font-mono leading-relaxed text-muted-foreground uppercase opacity-60 group-hover:opacity-100 transition-opacity">
+        {description}
+      </p>
+    </div>
+  </motion.div>
+);
 
 export const DocumentationPreferences = ({
   selectedCodeSections,
@@ -45,167 +75,103 @@ export const DocumentationPreferences = ({
     }
   };
 
-  const codeSections = [
-    { id: "code_overview", label: "Code Overview", description: "High-level summary of the codebase structure and organization" },
-    { id: "api_endpoints", label: "API Endpoints", description: "Document API routes, methods, parameters, and responses" },
-    { id: "function_reference", label: "Function Reference", description: "Detailed documentation of key functions and methods" },
-    { id: "component_library", label: "Component Library", description: "Catalog of UI components with props and usage examples" },
-    { id: "data_models", label: "Data Models", description: "Document database schema, types, and data flow" },
-    { id: "config_options", label: "Configuration Options", description: "Document environment variables and configuration settings" },
-    { id: "setup_guide", label: "Setup Guide", description: "Instructions for setting up development environment" },
-    { id: "troubleshooting", label: "Troubleshooting", description: "Common issues and their solutions" },
-    { id: "code_examples", label: "Code Examples", description: "Practical examples for common use cases" }
-  ];
-
-  const reportSections = [
-    { id: "abstract", label: "Abstract", description: "Brief summary of the entire project" },
-    { id: "introduction", label: "Introduction", description: "Overview of the problem and solution" },
-    { id: "literature_survey", label: "Literature Survey", description: "Review of related work and technologies" },
-    { id: "methodology", label: "Methodology", description: "Approach and methods used" },
-    { id: "proposed_system", label: "Proposed System", description: "Detailed description of the system architecture" },
-    { id: "expected_results", label: "Expected Results", description: "Expected outcomes and performance" },
-    { id: "conclusion", label: "Conclusion", description: "Summary of findings and implementation" },
-    { id: "future_scope", label: "Future Scope", description: "Potential future improvements and extensions" },
-    { id: "references", label: "References", description: "Citations and references used" }
-  ];
-
   return (
     <>
-      <TabsContent value="code" className="space-y-6">
+      <TabsContent value="code" className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-2">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {codeSections.map((section) => (
-            <div key={section.id} className="flex items-start space-x-3 p-3 rounded-md hover:bg-slate-50">
-              <Checkbox 
-                id={`code-${section.id}`}
-                checked={selectedCodeSections.includes(section.id)}
-                onCheckedChange={(checked) => handleCodeSectionChange(section.id, checked as boolean)}
-              />
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <Label 
-                    htmlFor={`code-${section.id}`} 
-                    className="font-medium cursor-pointer"
-                  >
-                    {section.label}
-                  </Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <InfoIcon className="h-4 w-4 text-slate-400" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">{section.description}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <p className="text-sm text-slate-500">{section.description}</p>
-              </div>
-            </div>
+          {CODE_SECTIONS.map((section) => (
+            <PreferenceCard 
+              key={section.id}
+              id={`code-${section.id}`}
+              label={section.label}
+              description={section.description}
+              checked={selectedCodeSections.includes(section.id)}
+              onChange={(c: boolean) => handleCodeSectionChange(section.id, c)}
+              icon={FileText}
+            />
           ))}
         </div>
       </TabsContent>
 
-      <TabsContent value="report" className="space-y-6">
+      <TabsContent value="report" className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-2">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {reportSections.map((section) => {
-            // Special handling for Literature Survey section
-            if (section.id === "literature_survey") {
+          {REPORT_SECTIONS.map((section) => {
+            const isSelected = selectedReportSections.includes(section.id);
+            const isLiterature = section.id === "literature_survey";
+
+            if (isLiterature) {
               return (
-                <div key={section.id} className="flex items-start space-x-3 p-3 rounded-md hover:bg-slate-50 md:col-span-2">
-                  <Checkbox 
+                <div key={section.id} className="md:col-span-2 space-y-4">
+                  <PreferenceCard 
                     id={`report-${section.id}`}
-                    checked={selectedReportSections.includes(section.id)}
-                    onCheckedChange={(checked) => handleReportSectionChange(section.id, checked as boolean)}
+                    label={section.label}
+                    description={section.description}
+                    checked={isSelected}
+                    onChange={(c: boolean) => handleReportSectionChange(section.id, c)}
+                    icon={Database}
                   />
-                  <div className="space-y-3 w-full">
-                    <div className="flex items-center space-x-2">
-                      <Label 
-                        htmlFor={`report-${section.id}`} 
-                        className="font-medium cursor-pointer"
+                  <AnimatePresence>
+                    {isSelected && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
                       >
-                        {section.label}
-                      </Label>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <InfoIcon className="h-4 w-4 text-slate-400" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">{section.description}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    
-                    {selectedReportSections.includes(section.id) && (
-                      <div className="mt-2 w-full space-y-4">
-                        <RadioGroup 
-                          value={literatureSource} 
-                          onValueChange={(value) => setLiteratureSource(value as "auto" | "manual")}
-                          className="flex space-x-6"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="auto" id="auto-search" />
-                            <Label htmlFor="auto-search" className="cursor-pointer">Auto-search arXiv based on repo topic</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="manual" id="manual-papers" />
-                            <Label htmlFor="manual-papers" className="cursor-pointer">Manually paste relevant papers</Label>
-                          </div>
-                        </RadioGroup>
-                        
-                        {literatureSource === "manual" && (
-                          <div className="space-y-2">
-                            <Label htmlFor="manual-references">Relevant Papers or References</Label>
-                            <Textarea
-                              id="manual-references"
-                              placeholder="Paste DOIs, arXiv IDs, or full citations (one per line)"
-                              value={manualReferences}
-                              onChange={(e) => setManualReferences(e.target.value)}
-                              className="min-h-24"
-                            />
-                            <p className="text-xs text-slate-500">
-                              Format example: arXiv:2303.08774 or doe2023comprehensive
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                        <div className="bg-zinc-950/50 border border-white/5 p-8 space-y-8 ml-4 border-l-2 border-l-primary/40">
+                          <RadioGroup 
+                            value={literatureSource} 
+                            onValueChange={(v) => setLiteratureSource(v as "auto" | "manual")}
+                            className="flex flex-col md:flex-row gap-8"
+                          >
+                            <div className="flex items-center space-x-3 group cursor-pointer">
+                              <RadioGroupItem value="auto" id="auto-search" className="border-primary/40 data-[state=checked]:bg-primary rounded-none" />
+                              <Label htmlFor="auto-search" className="font-mono text-[10px] uppercase tracking-widest cursor-pointer group-hover:text-primary transition-colors">
+                                AUTO (ARXIV)
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-3 group cursor-pointer">
+                              <RadioGroupItem value="manual" id="manual-papers" className="border-primary/40 data-[state=checked]:bg-primary rounded-none" />
+                              <Label htmlFor="manual-papers" className="font-mono text-[10px] uppercase tracking-widest cursor-pointer group-hover:text-primary transition-colors">
+                                MANUAL
+                              </Label>
+                            </div>
+                          </RadioGroup>
+                          
+                          {literatureSource === "manual" && (
+                            <motion.div 
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className="space-y-4"
+                            >
+                              <Label htmlFor="manual-references" className="text-[8px] font-mono uppercase tracking-[0.2em] text-primary/60">REFERENCES</Label>
+                              <Textarea
+                                id="manual-references"
+                                placeholder="PASTE IDS OR CITATIONS..."
+                                value={manualReferences}
+                                onChange={(e) => setManualReferences(e.target.value)}
+                                className="min-h-[120px] bg-black border-white/10 rounded-none font-mono text-xs uppercase leading-relaxed placeholder:text-muted-foreground/20"
+                              />
+                            </motion.div>
+                          )}
+                        </div>
+                      </motion.div>
                     )}
-                  </div>
+                  </AnimatePresence>
                 </div>
               );
             }
             
             return (
-              <div key={section.id} className="flex items-start space-x-3 p-3 rounded-md hover:bg-slate-50">
-                <Checkbox 
-                  id={`report-${section.id}`}
-                  checked={selectedReportSections.includes(section.id)}
-                  onCheckedChange={(checked) => handleReportSectionChange(section.id, checked as boolean)}
-                />
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <Label 
-                      htmlFor={`report-${section.id}`} 
-                      className="font-medium cursor-pointer"
-                    >
-                      {section.label}
-                    </Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <InfoIcon className="h-4 w-4 text-slate-400" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="max-w-xs">{section.description}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <p className="text-sm text-slate-500">{section.description}</p>
-                </div>
-              </div>
+              <PreferenceCard 
+                key={section.id}
+                id={`report-${section.id}`}
+                label={section.label}
+                description={section.description}
+                checked={isSelected}
+                onChange={(c: boolean) => handleReportSectionChange(section.id, c)}
+                icon={Activity}
+              />
             );
           })}
         </div>

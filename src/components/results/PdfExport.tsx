@@ -2,7 +2,7 @@
 import { useState } from "react";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
-import { Download } from "lucide-react";
+import { Download, File, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DocumentationResult } from "@/types/documentation";
 import { convertMermaidMarkdownToImages } from "@/lib/documentation";
@@ -307,10 +307,10 @@ const PdfExport = ({ result, disabled = false }: PdfExportProps) => {
 
       pdf.save("documentation.pdf");
 
-      toast.success("PDF generated successfully");
+      toast.success("PDF_VECTOR_GEN_COMPLETE");
     } catch (error) {
       console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF");
+      toast.error("PDF_SYNTHESIS_FAILURE");
     } finally {
       setExportingPdf(false);
     }
@@ -320,11 +320,18 @@ const PdfExport = ({ result, disabled = false }: PdfExportProps) => {
     <Button 
       onClick={downloadPDF} 
       variant="outline" 
-      className="flex items-center gap-1"
+      className="h-10 rounded-none border-white/10 hover:border-primary/40 bg-zinc-950 hover:bg-primary/5 text-[10px] font-mono uppercase tracking-[0.2em] px-4 group relative overflow-hidden" 
       disabled={disabled || exportingPdf}
     >
-      <Download className="h-4 w-4" />
-      {exportingPdf ? "Generating..." : "Export as PDF"}
+      <div className="flex items-center gap-2 relative z-10">
+        {exportingPdf ? (
+          <Loader2 size={12} className="animate-spin text-primary" />
+        ) : (
+          <File size={12} className="group-hover:translate-y-0.5 transition-transform" />
+        )}
+        <span>{exportingPdf ? "Exporting..." : "Export PDF"}</span>
+      </div>
+      <div className="absolute inset-0 bg-primary/5 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-linear pointer-events-none" />
     </Button>
   );
 };

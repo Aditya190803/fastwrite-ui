@@ -34,7 +34,7 @@ const DocumentViewer = ({
     <div className="border rounded-lg bg-white shadow-md overflow-hidden">
       <div className="p-3 h-full">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg font-semibold text-slate-800">Documentation Text</h2>
+          <h2 className="text-lg font-semibold text-slate-800">Document</h2>
           <Button 
             variant="ghost" 
             size="sm" 
@@ -46,7 +46,7 @@ const DocumentViewer = ({
             ) : (
               <Highlighter className="h-4 w-4" />
             )}
-            {markModeEnabled ? 'Exit Mark Mode' : 'Mark Mode'}
+            {markModeEnabled ? 'Done' : 'Select'}
           </Button>
         </div>
         <ScrollArea className={isMobile ? "h-[40vh]" : "h-[calc(70vh-60px)]"}>

@@ -1,5 +1,5 @@
-
 import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,15 +7,20 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { InfoIcon, X, Upload, Key, ExternalLink } from "lucide-react";
+import { InfoIcon, X, Upload, Key, ExternalLink, AlertTriangle, CheckCircle2, Loader2, Github, Cpu, Database, Network } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { validateZipFile, ZipValidationResult } from "@/lib/zipValidation";
+import { STORAGE_KEYS, AI_PROVIDERS, getProviderById, getProviderModels } from "@/lib/constants";
 
 interface SourceInputProps {
   sourceType: "github" | "zip";
   setSourceType: (type: "github" | "zip") => void;
   githubUrl: string;
   setGithubUrl: (url: string) => void;
+  githubBranch?: string;
+  setGithubBranch?: (branch: string) => void;
   zipFile: File | null;
   setZipFile: (file: File | null) => void;
   projectDescription: string;
@@ -26,11 +31,33 @@ interface SourceInputProps {
   setSelectedAiModel: (model: string) => void;
 }
 
+const SectorHeader = ({ title, icon: Icon, sub }: { title: string, icon: any, sub: string }) => (
+  <div className="flex items-center justify-between mb-8 border-b border-primary/20 pb-4">
+    <div className="flex items-center gap-4">
+      <div className="w-10 h-10 flex items-center justify-center bg-primary text-black">
+        <Icon size={20} strokeWidth={2.5} />
+      </div>
+      <div>
+        <h3 className="font-heading text-lg uppercase tracking-widest text-white leading-none mb-1">{title}</h3>
+        <p className="text-[10px] font-mono text-primary/60 uppercase tracking-tighter">{sub}</p>
+      </div>
+    </div>
+    <div className="hidden md:flex flex-col items-end">
+       <div className="flex gap-1 mb-1">
+         {[1,2,3,4].map(i => <div key={i} className="w-1 h-3 bg-primary/20" />)}
+       </div>
+       <span className="text-[8px] font-mono text-muted-foreground uppercase opacity-40">Verified</span>
+    </div>
+  </div>
+);
+
 export const SourceInput = ({
   sourceType,
   setSourceType,
   githubUrl,
   setGithubUrl,
+  githubBranch = "",
+  setGithubBranch,
   zipFile,
   setZipFile,
   projectDescription,
@@ -42,393 +69,293 @@ export const SourceInput = ({
 }: SourceInputProps) => {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [aiModels, setAiModels] = useState<string[]>([]);
+  const [githubToken, setGithubToken] = useState(() => localStorage.getItem(STORAGE_KEYS.GITHUB_TOKEN) || "");
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
 
-  // Updated provider models with more options
-  const providerModels: Record<string, string[]> = {
-    // OpenAI — include latest public/announced families (turbo, 4o, and 5)
-    openai: [
-      "gpt-5",
-      "gpt-4o",
-      "gpt-4o-mini",
-      "gpt-4-turbo",
-      "gpt-4o-realtime-preview",
-    ],
-
-    // Google Gemini (stable/flash/flash-lite variants)
-    google: [
-      "gemini-2.5-pro",
-      "gemini-2.5-flash",
-      "gemini-2.5-flash-lite",
-      "gemini-2.0-flash",
-    ],
-
-    // Groq and similar LLMs
-    groq: ["llama-3-8b", "llama-3-70b", "mixtral-8x7b", "groq-1"],
-
-    // OpenRouter
-    openrouter: [
-      "minimax/minimax-m2:free",
-      "tngtech/deepseek-r1t2-chimera:free",
-      "z-ai/glm-4.5-air:free",
-      "qwen/qwen3-coder:free",
-    ],
-  };
-
-  // Display friendly names for models
-  const modelDisplayNames: Record<string, string> = {
-    // OpenAI
-    "gpt-5": "GPT-5",
-    "gpt-4o": "GPT-4o",
-    "gpt-4o-mini": "GPT-4o Mini",
-    "gpt-4-turbo": "GPT-4 Turbo",
-    "gpt-4o-realtime-preview": "GPT-4o (Realtime Preview)",
-
-    // Google
-    "gemini-2.5-pro": "Gemini 2.5 Pro",
-    "gemini-2.5-flash": "Gemini 2.5 Flash",
-    "gemini-2.5-flash-lite": "Gemini 2.5 Flash-Lite",
-    "gemini-2.0-flash": "Gemini 2.0 Flash",
-
-    // Groq / open models
-    "llama-3-8b": "Llama 3 (8B)",
-    "llama-3-70b": "Llama 3 (70B)",
-    "mixtral-8x7b": "Mixtral 8x7B",
-    "groq-1": "Groq-1",
-
-    "minimax/minimax-m2:free": "Minimax M2",
-    "tngtech/deepseek-r1t2-chimera:free": "DeepSeek R1T2 Chimera",
-    "z-ai/glm-4.5-air:free": "GLM 4.5 Air",
-    "qwen/qwen3-coder:free": "Qwen3 Coder",
-  };
-
-  const providerLinks = {
-    openai: "https://platform.openai.com/api-keys",
-    google: "https://aistudio.google.com/app/apikey",
-    groq: "https://console.groq.com/keys",
-    openrouter: "https://openrouter.ai/settings/keys"
-  };
+  const currentProvider = getProviderById(selectedAiProvider);
+  const currentModels = getProviderModels(selectedAiProvider);
 
   useEffect(() => {
-    if (selectedAiProvider) {
-      setAiModels(providerModels[selectedAiProvider] || []);
-      if (providerModels[selectedAiProvider]?.length > 0) {
-        setSelectedAiModel(providerModels[selectedAiProvider][0]);
-      }
-      const savedApiKey = localStorage.getItem(`apiKey_${selectedAiProvider}`);
-      if (savedApiKey) {
-        setApiKey(savedApiKey);
-      } else {
-        setApiKey("");
-      }
+    const models = getProviderModels(selectedAiProvider);
+    if (models.length > 0 && !models.some(m => m.id === selectedAiModel)) {
+      setSelectedAiModel(models[0].id);
     }
-  }, [selectedAiProvider, setSelectedAiModel]);
+    const savedApiKey = localStorage.getItem(`apiKey_${selectedAiProvider}`);
+    if (savedApiKey) setApiKey(savedApiKey);
+    else setApiKey("");
+  }, [selectedAiProvider, setSelectedAiModel, selectedAiModel]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    setDragActive(e.type === "dragenter" || e.type === "dragover");
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      if (file.type === "application/zip" || file.name.endsWith(".zip")) {
+      if (file.name.endsWith('.zip')) {
         setZipFile(file);
-        setSourceType("zip");
+        toast.success("File uploaded");
       } else {
-        toast.error("Please upload a ZIP file.");
+        toast.error("Invalid file format");
       }
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.type === "application/zip" || file.name.endsWith(".zip")) {
-        setZipFile(file);
-        setSourceType("zip");
-      } else {
-        toast.error("Please upload a ZIP file.");
-      }
-    }
-  };
-
-  const handleFileUploadClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
     }
   };
 
   const handleApiKeySave = () => {
     if (apiKey.trim()) {
       localStorage.setItem(`apiKey_${selectedAiProvider}`, apiKey);
-      toast.success(`API key saved for ${selectedAiProvider}`);
+      toast.success(`Key saved for ${selectedAiProvider}`);
       setShowApiKey(false);
     } else {
-      toast.error("Please enter a valid API key");
+      toast.error("Invalid key");
     }
   };
 
-  const hasApiKey = (provider: string) => {
-    return !!localStorage.getItem(`apiKey_${provider}`);
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <Label>Source Type</Label>
-        <RadioGroup
-          value={sourceType}
-          onValueChange={(value) => setSourceType(value as "github" | "zip")}
-          className="flex space-x-4"
+    <div className="space-y-16">
+      <section>
+        <SectorHeader title="CODE" icon={Database} sub="REPOSITORY" />
+        
+        <RadioGroup 
+          value={sourceType} 
+          onValueChange={(v) => setSourceType(v as "github" | "zip")}
+          className="grid grid-cols-2 gap-4 mb-10"
         >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="github" id="github" />
-            <Label htmlFor="github" className="cursor-pointer">GitHub Repository</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="zip" id="zip" />
-            <Label htmlFor="zip" className="cursor-pointer">Upload ZIP</Label>
-          </div>
+          <motion.div 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`relative transition-all border p-1 ${sourceType === 'github' ? 'border-primary bg-primary/5' : 'border-white/10 opacity-60'}`}
+          >
+             <RadioGroupItem value="github" id="github" className="sr-only" />
+             <Label htmlFor="github" className="flex flex-col items-center justify-center py-12 cursor-pointer border border-transparent hover:border-primary/20 transition-colors">
+                <Github size={32} className={sourceType === 'github' ? 'text-primary' : 'text-white/40'} />
+                <span className="font-heading uppercase text-sm tracking-widest text-white mt-4">GitHub</span>
+                <span className="text-[8px] font-mono mt-1 text-primary/60 uppercase">Remote</span>
+             </Label>
+          </motion.div>
+
+          <motion.div 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`relative transition-all border p-1 ${sourceType === 'zip' ? 'border-primary bg-primary/5' : 'border-white/10 opacity-60'}`}
+          >
+             <RadioGroupItem value="zip" id="zip" className="sr-only" />
+             <Label htmlFor="zip" className="flex flex-col items-center justify-center py-12 cursor-pointer border border-transparent hover:border-primary/20 transition-colors">
+                <Upload size={32} className={sourceType === 'zip' ? 'text-primary' : 'text-white/40'} />
+                <span className="font-heading uppercase text-sm tracking-widest text-white mt-4">ZIP</span>
+                <span className="text-[8px] font-mono mt-1 text-primary/60 uppercase">Local</span>
+             </Label>
+          </motion.div>
         </RadioGroup>
-      </div>
 
-      {sourceType === "github" ? (
-        <div className="space-y-2">
-          <Label htmlFor="github-url">GitHub Repository URL</Label>
-          <Input
-            id="github-url"
-            placeholder="https://github.com/username/repository"
-            value={githubUrl}
-            onChange={(e) => setGithubUrl(e.target.value)}
-          />
-          <p className="text-sm text-slate-500">Example: https://github.com/facebook/react</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <Label>Upload ZIP File</Label>
-          <div
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-            onClick={handleFileUploadClick}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-              dragActive 
-                ? "border-blue-400 bg-blue-50" 
-                : zipFile 
-                  ? "border-green-400 bg-green-50" 
-                  : "border-slate-300 hover:border-slate-400"
-            }`}
-          >
-            {zipFile ? (
-              <div className="flex items-center justify-center space-x-2">
-                <span className="text-green-600 truncate max-w-xs">{zipFile.name}</span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setZipFile(null);
-                  }}
-                  className="rounded-full h-6 w-6 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+        <AnimatePresence mode="wait">
+          {sourceType === "github" ? (
+            <motion.div 
+              key="github-input"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-6"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="md:col-span-3 space-y-2">
+                  <Label className="text-[10px] font-mono uppercase tracking-widest text-primary/60">URL</Label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-4 flex items-center">
+                      <Github size={20} className="text-primary/40 group-focus-within:text-primary transition-colors" />
+                    </div>
+                    <Input 
+                      value={githubUrl}
+                      onChange={(e) => setGithubUrl(e.target.value)}
+                      placeholder="https://github.com/user/repo"
+                      className="bg-black/40 border-white/10 rounded-none h-14 pl-12 font-mono text-sm focus-visible:ring-primary focus-visible:border-primary"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                   <Label className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Branch</Label>
+                   <Input 
+                    value={githubBranch}
+                    onChange={(e) => setGithubBranch?.(e.target.value)}
+                    placeholder="main"
+                    className="bg-black/40 border-white/10 rounded-none h-14 font-mono uppercase text-xs tracking-widest text-center"
+                  />
+                </div>
               </div>
-            ) : (
+              
               <div className="space-y-2">
-                <Upload className="h-10 w-10 text-slate-400 mx-auto" />
-                <p className="text-slate-600">Drag & drop your ZIP file here or click to browse</p>
-                <p className="text-sm text-slate-500">Max file size: 100MB</p>
+                 <div className="flex justify-between items-center">
+                   <Label className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Token (optional)</Label>
+                   <span className="text-[8px] font-mono text-muted-foreground/40 italic">Local</span>
+                 </div>
+                 <div className="relative">
+                   <Input 
+                    type="password"
+                    value={githubToken}
+                    onChange={(e) => {
+                      const t = e.target.value;
+                      setGithubToken(t);
+                      if (t) localStorage.setItem(STORAGE_KEYS.GITHUB_TOKEN, t);
+                      else localStorage.removeItem(STORAGE_KEYS.GITHUB_TOKEN);
+                    }}
+                    placeholder="Personal Access Token"
+                    className="bg-black/40 border-white/10 rounded-none h-14 font-mono text-sm tracking-widest"
+                  />
+                  <Key className="absolute right-4 top-4 text-white/20" size={18} />
+                 </div>
               </div>
-            )}
-            <input
-              type="file"
-              accept=".zip"
-              className="hidden"
-              onChange={handleFileChange}
-              id="file-upload"
-              ref={fileInputRef}
-            />
-          </div>
-        </div>
-      )}
-
-      <Separator />
-
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <Label htmlFor="project-description" className="text-base font-medium">
-            Project Description (Optional)
-          </Label>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <InfoIcon className="h-4 w-4 text-slate-400" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="max-w-xs">Provide additional context about your project to help guide the documentation generation.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-        <Textarea
-          id="project-description"
-          placeholder="Enter a brief description of your project..."
-          value={projectDescription}
-          onChange={(e) => setProjectDescription(e.target.value)}
-          className="min-h-24"
-        />
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <Label htmlFor="ai-provider" className="text-base font-medium">
-            AI Provider
-          </Label>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <InfoIcon className="h-4 w-4 text-slate-400" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="max-w-xs">Select which AI provider to use for generating documentation.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-        <Select value={selectedAiProvider} onValueChange={setSelectedAiProvider}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select AI Provider" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="google">Google</SelectItem>
-            <SelectItem value="openai">OpenAI</SelectItem>
-            <SelectItem value="groq">Groq</SelectItem>
-            <SelectItem value="openrouter">OpenRouter</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {selectedAiProvider && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <Label htmlFor="ai-model" className="text-base font-medium">
-              AI Model
-            </Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <InfoIcon className="h-4 w-4 text-slate-400" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">Select which model to use from the chosen provider.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <Select value={selectedAiModel} onValueChange={setSelectedAiModel}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select AI Model" />
-            </SelectTrigger>
-            <SelectContent>
-              {aiModels.map((model) => (
-                <SelectItem key={model} value={model}>
-                  {modelDisplayNames[model] || model}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {selectedAiProvider && (
-        <div className="space-y-2">
-          <div className="flex justify-between items-center mb-1">
-            <Label htmlFor="api-key" className="text-base font-medium">
-              API Key for {selectedAiProvider}
-            </Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <InfoIcon className="h-4 w-4 text-slate-400" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">Your API key will be stored locally on your device and never sent to our servers.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          
-          <a 
-            href={providerLinks[selectedAiProvider as keyof typeof providerLinks]} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 mb-2"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Get API key for {selectedAiProvider}
-          </a>
-          
-          {showApiKey ? (
-            <div className="space-y-2">
-              <Input
-                id="api-key"
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder={`Enter your ${selectedAiProvider} API key`}
-                className="font-mono"
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="zip-input"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              className={`border border-dashed h-48 flex flex-col items-center justify-center transition-all relative ${dragActive ? 'border-primary bg-primary/5' : 'border-white/10 bg-black/20 hover:bg-black/40 hover:border-white/20'}`}
+            >
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={(e) => e.target.files?.[0] && setZipFile(e.target.files[0])}
+                className="hidden" 
+                accept=".zip"
               />
-              <div className="flex gap-2 mt-2">
+              {zipFile ? (
+                <div className="flex flex-col items-center gap-4">
+                   <div className="w-16 h-16 flex items-center justify-center bg-primary text-black font-black uppercase text-xl relative">
+                      ZIP
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-black border border-primary" />
+                   </div>
+                   <div className="text-center">
+                      <p className="text-white font-mono uppercase text-sm tracking-wider">{zipFile.name}</p>
+                      <button onClick={() => setZipFile(null)} className="text-[10px] text-red-500 uppercase font-mono tracking-widest mt-1 hover:text-red-400 group flex items-center justify-center gap-1 mx-auto">
+                        <X size={10} /> REMOVE
+                      </button>
+                   </div>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex flex-col items-center group cursor-pointer"
+                >
+                  <Upload className="text-primary/40 mb-4 group-hover:text-primary transition-colors" size={32} />
+                  <p className="text-[12px] font-mono uppercase tracking-widest text-muted-foreground group-hover:text-white transition-colors">Drop ZIP or <span className="text-primary">Click to Upload</span></p>
+                  <span className="text-[8px] font-mono text-muted-foreground/30 mt-2 uppercase">Max 100MB</span>
+                </button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </section>
+
+      <section>
+        <SectorHeader title="AI" icon={Cpu} sub="MODEL" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-zinc-950/40 p-10 border border-white/5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-3 opacity-20">
+             <Network size={40} className="text-primary" />
+          </div>
+          
+          <div className="space-y-4">
+            <Label className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Provider</Label>
+            <Select value={selectedAiProvider} onValueChange={setSelectedAiProvider}>
+              <SelectTrigger className="bg-black border-white/10 rounded-none h-14 font-heading tracking-widest hover:border-primary/40 transition-colors">
+                <SelectValue placeholder="Select Provider" />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-950 border-white/10 rounded-none uppercase font-mono text-xs">
+                {AI_PROVIDERS.map((provider) => (
+                  <SelectItem key={provider.id} value={provider.id}>
+                    {provider.name.toUpperCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-[10px] font-mono uppercase tracking-widest text-primary/60">Model</Label>
+            <Select value={selectedAiModel} onValueChange={setSelectedAiModel}>
+              <SelectTrigger className="bg-black border-white/10 rounded-none h-14 font-mono tracking-tighter hover:border-primary/40 transition-colors">
+                <SelectValue placeholder="Select Model" />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-950 border-white/10 rounded-none font-mono text-xs">
+                {currentModels.map(m => (
+                  <SelectItem key={m.id} value={m.id}>{m.name.toUpperCase()}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="md:col-span-2 space-y-4 pt-4 border-t border-white/5">
+             <div className="flex justify-between items-center">
+                <Label className="text-[10px] font-mono uppercase tracking-widest text-primary/60">API KEY</Label>
+                <a 
+                  href={currentProvider?.apiKeyUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[10px] font-mono text-primary hover:underline flex items-center gap-1 uppercase tracking-widest"
+                >
+                  <ExternalLink size={10} /> GET KEY
+                </a>
+             </div>
+             
+             {showApiKey ? (
+                <div className="flex gap-2">
+                   <Input 
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="ENTER KEY..."
+                    className="bg-black border-white/10 h-12 font-mono"
+                   />
+                   <Button onClick={handleApiKeySave} className="h-12 bg-primary text-black rounded-none px-6 font-heading uppercase text-xs tracking-widest">Store</Button>
+                   <Button variant="ghost" onClick={() => setShowApiKey(false)} className="h-12 font-mono text-[10px] uppercase">Cancel</Button>
+                </div>
+             ) : (
                 <Button 
                   variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowApiKey(false)}
-                  className="w-1/2"
+                  onClick={() => setShowApiKey(true)}
+                  className="w-full h-12 border-primary/20 bg-primary/5 text-primary rounded-none font-heading uppercase text-xs tracking-[0.2em] relative group overflow-hidden"
                 >
-                  Cancel
+                  <div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-10 transition-opacity" />
+                  <Key size={14} className="mr-2" />
+                  {localStorage.getItem(`apiKey_${selectedAiProvider}`) ? 'UPDATE KEY' : 'SET KEY'}
                 </Button>
-                <Button 
-                  size="sm" 
-                  onClick={handleApiKeySave}
-                  className="w-1/2"
-                >
-                  Save API Key
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Button 
-                variant={hasApiKey(selectedAiProvider) ? "outline" : "default"}
-                size="sm" 
-                onClick={() => setShowApiKey(true)}
-                className="flex items-center gap-1 w-full"
-              >
-                <Key className="h-4 w-4" />
-                {hasApiKey(selectedAiProvider) ? "Update API Key" : "Set API Key"}
-              </Button>
-              
-              {hasApiKey(selectedAiProvider) && (
-                <p className="text-sm text-green-600">API key for {selectedAiProvider} is set and stored locally</p>
-              )}
-            </div>
-          )}
+             )}
+          </div>
         </div>
-      )}
+      </section>
+
+      <section className="space-y-2">
+        <SectorHeader title="CONTEXT" icon={CheckCircle2} sub="SUMMARY" />
+        <div className="relative group">
+          <div className="absolute top-4 left-4 pointer-events-none opacity-20">
+             <InfoIcon size={20} className="text-primary" />
+          </div>
+          <Textarea 
+            placeholder="Describe the project goals and architecture..."
+            className="min-h-[250px] bg-black border-white/10 rounded-none p-10 font-mono text-sm leading-relaxed focus-visible:ring-primary focus-visible:border-primary placeholder:text-muted-foreground/20 resize-none transition-all hover:bg-black/60"
+            value={projectDescription}
+            onChange={(e) => setProjectDescription(e.target.value)}
+          />
+          <div className="flex justify-between mt-2 px-1">
+             <div className="flex gap-4">
+                <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">BUFFER</span>
+                <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">ASCII</span>
+             </div>
+             <span className="text-[8px] font-mono text-primary/40 uppercase tracking-widest">V0.1</span>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
