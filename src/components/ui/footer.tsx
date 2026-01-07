@@ -8,23 +8,23 @@ export const MainFooter = () => {
       <div className="container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-3">FastWrite</h3>
-            <p className="text-sm text-gray-300">
-              Generate comprehensive documentation for your code with AI, combining technical details and academic reporting.
+            <h3 className="text-lg font-heading font-black uppercase tracking-tighter mb-3">FASTWRITE</h3>
+            <p className="text-xs font-mono uppercase tracking-tight text-gray-400">
+              Technical documentation generator.
             </p>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-3">Resources</h3>
-            <ul className="space-y-2">
+            <h3 className="text-lg font-heading font-black uppercase tracking-tighter mb-3">LINKS</h3>
+            <ul className="space-y-2 font-mono text-[10px] uppercase tracking-widest">
               <li>
                 <a 
                   href="https://fastwrite.kjsieit.com" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-sm text-gray-300 hover:text-[#F6B72E] transition-colors"
+                  className="text-gray-400 hover:text-primary transition-colors"
                 >
-                  About FastWrite
+                  Project
                 </a>
               </li>
               <li>
@@ -32,22 +32,22 @@ export const MainFooter = () => {
                   href="https://pypi.org/project/fastwrite" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-sm text-gray-300 hover:text-[#F6B72E] transition-colors"
+                  className="text-gray-400 hover:text-primary transition-colors"
                 >
-                  PyPi Package
+                  PyPi
                 </a>
               </li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-3">Connect</h3>
+            <h3 className="text-lg font-heading font-black uppercase tracking-tighter mb-3">SOCIAL</h3>
             <div className="flex space-x-4">
               <a 
                 href="https://github.com/R-G-KJSIT/FastWrite/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-[#F6B72E] transition-colors"
+                className="text-gray-400 hover:text-primary transition-colors"
               >
                 <Github className="h-5 w-5" />
               </a>
