@@ -38,29 +38,43 @@ export const PromptPreview = ({
   }, [sourceType, githubUrl, selectedCodeSections, selectedReportSections, literatureSource, manualReferences]);
 
   return (
-    <div className="bg-black/80 border border-white/5 relative overflow-hidden group">
+    <div className="bg-black border border-white/5 relative overflow-hidden group industrial-border shadow-2xl">
+      {/* Dynamic scanline */}
+      <div className="absolute inset-0 pointer-events-none z-20 animate-scan-slow opacity-10 bg-gradient-to-b from-transparent via-primary/20 to-transparent h-20" />
+      
       {/* Header Label */}
-      <div className="flex items-center justify-between px-4 py-2 bg-white/[0.03] border-b border-white/5">
-         <div className="flex items-center gap-2">
-            <Terminal size={10} className="text-primary" />
-            <span className="font-mono text-[9px] text-white/40 uppercase tracking-[0.2em]">Prompt Preview</span>
+      <div className="flex items-center justify-between px-6 py-4 bg-white/[0.03] border-b border-white/5 relative z-10">
+         <div className="flex items-center gap-3">
+            <div className="w-2 h-2 bg-primary animate-pulse rounded-full" />
+            <span className="font-mono text-[10px] text-primary uppercase tracking-[0.4em] font-bold">LIVE_PROMPT_BUFFER</span>
          </div>
-         <div className="flex items-center gap-2">
-            <span className="font-mono text-[8px] text-primary/40 uppercase">Read Only</span>
-            <Shield size={10} className="text-primary/20" />
+         <div className="flex items-center gap-3">
+            <span className="font-mono text-[9px] text-white/50 uppercase tracking-[0.2em]">{prompt.length} BYTES</span>
+            <div className="flex gap-0.5">
+               {[1,2,3].map(i => <div key={i} className="w-1.5 h-3 bg-white/20" />)}
+            </div>
          </div>
       </div>
       
-      <ScrollArea className={`${isMobile ? 'h-40' : 'h-60'} w-full bg-black/40`}>
-        <div className="p-4 md:p-6">
-           <pre className="text-[10px] md:text-[11px] font-mono whitespace-pre-wrap leading-relaxed text-white/50 group-hover:text-white/70 transition-colors uppercase tracking-wider">
-             {prompt || "WAITING_FOR_INPUT_PARAMETERS..."}
+      <ScrollArea className={`${isMobile ? 'h-64' : 'h-80'} w-full bg-black/60 relative z-10 custom-scrollbar`}>
+        <div className="p-8 relative">
+           {/* CRT Grid effect */}
+           <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[size:20px_20px] [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)]" />
+           
+           <pre className="text-[11px] md:text-[12px] font-mono whitespace-pre-wrap leading-relaxed text-primary/80 group-hover:text-primary transition-colors uppercase tracking-widest relative z-10 selection:bg-primary selection:text-black">
+             {prompt || ">> STATUS: WAITING_FOR_INPUT_VECTOR\n>> ROUTE: 0x2A9F\n>> ENCRYPTION: AES-256-GCM"}
            </pre>
         </div>
       </ScrollArea>
 
       {/* Footer Decoration */}
-      <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="px-6 py-3 bg-white/[0.02] border-t border-white/5 flex justify-between items-center relative z-10">
+        <div className="flex gap-4">
+          <span className="text-[8px] font-mono text-white/60 uppercase">CRC32: 0x8F2D1A</span>
+          <span className="text-[8px] font-mono text-white/60 uppercase">PARITY: ODD</span>
+        </div>
+        <div className="text-[8px] font-mono text-primary/60 uppercase">READY_TO_STREAM</div>
+      </div>
     </div>
   );
 };

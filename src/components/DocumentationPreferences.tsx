@@ -5,8 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { TabsContent } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { InfoIcon, Search, FileText, Database, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { InfoIcon, Search, FileText, Database, Activity, Plus, Loader2, ExternalLink } from "lucide-react";
 import { CODE_SECTIONS, REPORT_SECTIONS } from "@/lib/constants";
+import { manualArxivSearch, type ArxivPaper } from "@/lib/arxiv";
+import { useState } from "react";
 
 interface DocumentationPreferencesProps {
   selectedCodeSections: string[];
@@ -22,29 +26,37 @@ interface DocumentationPreferencesProps {
 const PreferenceCard = ({ id, label, description, checked, onChange, icon: Icon }: any) => (
   <motion.div 
     whileHover={{ x: 4 }}
-    className={`group flex items-start gap-4 p-5 transition-all border ${checked ? 'border-primary bg-primary/5' : 'border-white/5 bg-black/20 hover:bg-black/40 hover:border-white/10'}`}
+    className={`group flex items-start gap-5 p-6 transition-all relative overflow-hidden ${checked ? 'industrial-border bg-primary/5' : 'border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/10'}`}
   >
-    <div className="pt-1">
+    {checked && (
+      <div className="absolute top-0 right-0 p-1 opacity-10 pointer-events-none">
+        <Activity size={40} className="text-primary" />
+      </div>
+    )}
+    <div className="pt-1.5 relative z-10">
       <Checkbox 
         id={id}
         checked={checked}
         onCheckedChange={(c) => onChange(c as boolean)}
-        className="rounded-none border-white/20 data-[state=checked]:bg-primary data-[state=checked]:text-black"
+        className="h-5 w-5 rounded-none border-white/20 data-[state=checked]:bg-primary data-[state=checked]:text-black transition-all"
       />
     </div>
-    <div className="space-y-2 flex-1">
-      <div className="flex items-center gap-2">
+    <div className="space-y-3 flex-1 relative z-10">
+      <div className="flex items-center justify-between">
         <Label 
           htmlFor={id} 
-          className="font-heading text-xs uppercase tracking-[0.15em] cursor-pointer text-white group-hover:text-primary transition-colors"
+          className="font-heading text-[13px] uppercase tracking-[0.2em] font-black cursor-pointer text-white group-hover:text-primary transition-colors italic"
         >
           {label}
         </Label>
-        {Icon && <Icon size={14} className="text-muted-foreground opacity-40 group-hover:opacity-100 transition-opacity" />}
+        {checked && <span className="text-[8px] font-mono text-primary/60 animate-pulse">ENABLED</span>}
       </div>
-      <p className="text-[10px] font-mono leading-relaxed text-muted-foreground uppercase opacity-60 group-hover:opacity-100 transition-opacity">
+      <p className="text-[10px] font-mono leading-relaxed text-white/30 uppercase tracking-wider group-hover:text-white/60 transition-opacity">
         {description}
       </p>
+      <div className="flex gap-1 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        {[1,2,3].map(i => <div key={i} className={`h-[2px] w-4 ${checked ? 'bg-primary/40' : 'bg-white/10'}`} />)}
+      </div>
     </div>
   </motion.div>
 );
@@ -59,6 +71,10 @@ export const DocumentationPreferences = ({
   manualReferences,
   setManualReferences
 }: DocumentationPreferencesProps) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<ArxivPaper[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const handleCodeSectionChange = (sectionId: string, checked: boolean) => {
     if (checked) {
       setSelectedCodeSections([...selectedCodeSections, sectionId]);
@@ -72,6 +88,30 @@ export const DocumentationPreferences = ({
       setSelectedReportSections([...selectedReportSections, sectionId]);
     } else {
       setSelectedReportSections(selectedReportSections.filter(id => id !== sectionId));
+    }
+  };
+
+  const handleArxivSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      const results = await manualArxivSearch(searchQuery);
+      setSearchResults(results.papers);
+    } catch (error) {
+      console.error("ArXiv search failed:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const addPaperReference = (paper: ArxivPaper) => {
+    const paperId = paper.id.split('/abs/').pop() || paper.id;
+    if (!manualReferences.includes(paperId)) {
+      const newRefs = manualReferences.trim() 
+        ? `${manualReferences.trim()}\n${paperId}`
+        : paperId;
+      setManualReferences(newRefs);
     }
   };
 
@@ -142,16 +182,74 @@ export const DocumentationPreferences = ({
                             <motion.div 
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
-                              className="space-y-4"
+                              className="space-y-6"
                             >
-                              <Label htmlFor="manual-references" className="text-[8px] font-mono uppercase tracking-[0.2em] text-primary/60">REFERENCES</Label>
-                              <Textarea
-                                id="manual-references"
-                                placeholder="PASTE IDS OR CITATIONS..."
-                                value={manualReferences}
-                                onChange={(e) => setManualReferences(e.target.value)}
-                                className="min-h-[120px] bg-black border-white/10 rounded-none font-mono text-xs uppercase leading-relaxed placeholder:text-muted-foreground/20"
-                              />
+                              <div className="space-y-4">
+                                <Label className="text-[8px] font-mono uppercase tracking-[0.2em] text-primary/60">ARXIV SEARCH</Label>
+                                <div className="flex gap-2">
+                                  <Input 
+                                    placeholder="SEARCH BY TOPIC, TITLE, OR AUTHOR..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleArxivSearch()}
+                                    className="bg-black border-white/10 rounded-none font-mono text-[10px] uppercase h-10"
+                                  />
+                                  <Button 
+                                    variant="outline" 
+                                    size="icon"
+                                    onClick={handleArxivSearch}
+                                    disabled={isSearching}
+                                    className="rounded-none border-white/10 hover:bg-primary hover:text-black transition-colors"
+                                  >
+                                    {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                                  </Button>
+                                </div>
+
+                                {searchResults.length > 0 && (
+                                  <div className="max-h-[200px] overflow-y-auto space-y-2 industrial-scrollbar pr-2">
+                                    {searchResults.map((paper) => (
+                                      <div 
+                                        key={paper.id}
+                                        className="group p-3 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-colors flex items-start justify-between gap-3"
+                                      >
+                                        <div className="flex-1 min-w-0">
+                                          <h4 className="text-[10px] font-bold text-white uppercase truncate mb-1">{paper.title}</h4>
+                                          <p className="text-[8px] font-mono text-white/40 uppercase truncate">
+                                            {paper.authors.join(", ")}
+                                          </p>
+                                        </div>
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <a 
+                                            href={paper.pdfUrl || paper.id} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="p-1 hover:text-primary transition-colors"
+                                          >
+                                            <ExternalLink size={14} />
+                                          </a>
+                                          <button 
+                                            onClick={() => addPaperReference(paper)}
+                                            className="p-1 hover:text-primary transition-colors"
+                                          >
+                                            <Plus size={14} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="space-y-4">
+                                <Label htmlFor="manual-references" className="text-[8px] font-mono uppercase tracking-[0.2em] text-primary/60">SELECTED REFERENCES (IDs)</Label>
+                                <Textarea
+                                  id="manual-references"
+                                  placeholder="PASTE IDS OR ADD FROM SEARCH ABOVE..."
+                                  value={manualReferences}
+                                  onChange={(e) => setManualReferences(e.target.value)}
+                                  className="min-h-[100px] bg-black border-white/10 rounded-none font-mono text-xs uppercase leading-relaxed placeholder:text-muted-foreground/20"
+                                />
+                              </div>
                             </motion.div>
                           )}
                         </div>

@@ -24,6 +24,7 @@ import { BookTemplate, Save, Trash2, Plus, Layout, Zap, Hash } from "lucide-reac
 import { DocumentationTemplate } from "@/types/documentation";
 import { STORAGE_KEYS, DEFAULT_TEMPLATES } from "@/lib/constants";
 import { toast } from "sonner";
+import { storage } from "@/lib/storage";
 
 interface TemplateSelectorProps {
   selectedCodeSections: string[];
@@ -45,10 +46,9 @@ export function TemplateSelector({
     loadTemplates();
   }, []);
 
-  const loadTemplates = () => {
+  const loadTemplates = async () => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.TEMPLATES);
-      const customTemplates: DocumentationTemplate[] = stored ? JSON.parse(stored) : [];
+      const customTemplates = await storage.get<DocumentationTemplate[]>(STORAGE_KEYS.TEMPLATES) || [];
       setTemplates([
         ...DEFAULT_TEMPLATES.map((t) => ({ ...t, isCustom: false })),
         ...customTemplates.map((t) => ({ ...t, isCustom: true })),
@@ -58,7 +58,7 @@ export function TemplateSelector({
     }
   };
 
-  const saveTemplate = () => {
+  const saveTemplate = async () => {
     if (!newTemplateName.trim()) {
       toast.error("Template designation required");
       return;
@@ -75,10 +75,9 @@ export function TemplateSelector({
     };
 
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.TEMPLATES);
-      const customTemplates: DocumentationTemplate[] = stored ? JSON.parse(stored) : [];
+      const customTemplates = await storage.get<DocumentationTemplate[]>(STORAGE_KEYS.TEMPLATES) || [];
       customTemplates.push(newTemplate);
-      localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(customTemplates));
+      await storage.set(STORAGE_KEYS.TEMPLATES, customTemplates);
       loadTemplates();
       setIsCreateDialogOpen(false);
       setNewTemplateName("");
@@ -89,12 +88,11 @@ export function TemplateSelector({
     }
   };
 
-  const deleteTemplate = (id: string) => {
+  const deleteTemplate = async (id: string) => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.TEMPLATES);
-      const customTemplates: DocumentationTemplate[] = stored ? JSON.parse(stored) : [];
+      const customTemplates = await storage.get<DocumentationTemplate[]>(STORAGE_KEYS.TEMPLATES) || [];
       const updated = customTemplates.filter(t => t.id !== id);
-      localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(updated));
+      await storage.set(STORAGE_KEYS.TEMPLATES, updated);
       loadTemplates();
       toast.success("Profile purged from system");
     } catch (error) {
