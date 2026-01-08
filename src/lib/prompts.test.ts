@@ -12,7 +12,7 @@ describe('generateDocumentationPrompt', () => {
     });
 
     expect(result).toContain('Source code from the repository');
-    expect(result).toContain('Code Overview');
+    expect(result).toContain('OVERVIEW: High-level summary');
     expect(result).toContain('High-level summary');
   });
 
@@ -25,7 +25,7 @@ describe('generateDocumentationPrompt', () => {
     });
 
     expect(result).toContain('Source code from the uploaded ZIP file');
-    expect(result).toContain('Project Overview');
+    expect(result).toContain('OVERVIEW: Executive summary');
   });
 
   it('should include manual references when provided', () => {
@@ -86,11 +86,11 @@ describe('generateDocumentationPrompt', () => {
       literatureSource: 'auto',
     });
 
-    expect(result).toContain('Code Overview');
-    expect(result).toContain('API Endpoints');
-    expect(result).toContain('Function Reference');
-    expect(result).toContain('Project Overview');
-    expect(result).toContain('Methodology');
+    expect(result).toContain('OVERVIEW: High-level summary');
+    expect(result).toContain('API: Documentation');
+    expect(result).toContain('FUNCTIONS: Detailed documentation');
+    expect(result).toContain('OVERVIEW: Executive summary');
+    expect(result).toContain('METHODOLOGY: Development approach');
   });
 
   it('should always include visualization instructions', () => {

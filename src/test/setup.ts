@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import 'fake-indexeddb/auto';
 
 // Mock next-themes
 vi.mock('next-themes', () => ({
