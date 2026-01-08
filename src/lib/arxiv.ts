@@ -231,6 +231,97 @@ export async function searchArxiv(
 }
 
 /**
+ * Searches arXiv API by specific paper IDs
+ * @param ids - Array of arXiv IDs (e.g., ["2301.00001", "2302.00002"])
+ * @returns Promise with search results
+ */
+export async function searchArxivByIds(
+  ids: string[]
+): Promise<ArxivSearchResult> {
+  if (ids.length === 0) {
+    return { papers: [], query: 'id_list:', totalResults: 0 };
+  }
+  
+  const query = `id_list:${ids.join(',')}`;
+  const baseUrl = 'https://export.arxiv.org/api/query';
+  const url = `${baseUrl}?id_list=${ids.join(',')}`;
+  
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`arXiv API error: ${response.status}`);
+    
+    const xmlText = await response.text();
+    const papers = parseArxivResponse(xmlText);
+    
+    return {
+      papers,
+      query,
+      totalResults: papers.length,
+    };
+  } catch (error) {
+    console.error('arXiv ID search failed:', error);
+    return { papers: [], query, totalResults: 0 };
+  }
+}
+
+/**
+ * Performs a manual free-text search on arXiv
+ * @param searchQuery - The search string provided by user
+ * @param maxResults - Maximum results to return
+ */
+export async function manualArxivSearch(
+  searchQuery: string,
+  maxResults: number = 5
+): Promise<ArxivSearchResult> {
+  if (!searchQuery.trim()) {
+    return { papers: [], query: '', totalResults: 0 };
+  }
+
+  const baseUrl = 'https://export.arxiv.org/api/query';
+  const params = new URLSearchParams({
+    search_query: `all:${searchQuery}`,
+    start: '0',
+    max_results: String(maxResults),
+    sortBy: 'relevance',
+    sortOrder: 'descending',
+  });
+  
+  const url = `${baseUrl}?${params.toString()}`;
+  
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`arXiv API error: ${response.status}`);
+    
+    const xmlText = await response.text();
+    const papers = parseArxivResponse(xmlText);
+    
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'application/xml');
+    const totalResultsElement = doc.querySelector('opensearch\\:totalResults, totalResults');
+    const totalResults = parseInt(totalResultsElement?.textContent || '0', 10);
+    
+    return {
+      papers,
+      query: searchQuery,
+      totalResults,
+    };
+  } catch (error) {
+    console.error('Manual arXiv search failed:', error);
+    return { papers: [], query: searchQuery, totalResults: 0 };
+  }
+}
+
+/**
+ * Extracts arXiv IDs from a string of text
+ */
+export function extractArxivIds(text: string): string[] {
+  // Match patterns like "2301.00001", "arxiv:2301.00001", "abs/2301.00001"
+  const regex = /(?:arxiv:)?(\d{4}\.\d{4,5}(?:v\d+)?)/gi;
+  const matches = [...text.matchAll(regex)];
+  return [...new Set(matches.map(m => m[1]))];
+}
+
+/**
  * Formats arXiv papers into a string suitable for the documentation prompt
  */
 export function formatPapersForPrompt(papers: ArxivPaper[]): string {
