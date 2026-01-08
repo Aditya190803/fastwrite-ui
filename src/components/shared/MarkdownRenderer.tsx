@@ -83,18 +83,6 @@ export const MarkdownRenderer = React.memo(({ content, className }: MarkdownRend
             const id = text.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
             return <h3 id={id} className="text-xl md:text-2xl font-black mt-12 mb-4 uppercase tracking-widest text-white/90 scroll-mt-32">{children}</h3>;
           },
-          h1: ({ children }) => {
-            const id = String(children).toLowerCase().replace(/[^\w]+/g, '-');
-            return <h1 id={id} className="scroll-mt-32">{children}</h1>;
-          },
-          h2: ({ children }) => {
-            const id = String(children).toLowerCase().replace(/[^\w]+/g, '-');
-            return <h2 id={id} className="scroll-mt-32">{children}</h2>;
-          },
-          h3: ({ children }) => {
-            const id = String(children).toLowerCase().replace(/[^\w]+/g, '-');
-            return <h3 id={id} className="scroll-mt-32">{children}</h3>;
-          },
           p: ({ children }) => {
             const text = String(children);
             const placeholderMatch = placeholders.find(p => text.includes(p.placeholder));
