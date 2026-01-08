@@ -27,8 +27,8 @@ export const STORAGE_KEYS = {
   LAST_PROVIDER: "fastwrite_last_provider",
   LAST_MODEL: "fastwrite_last_model",
   FORM_DATA: "fastwrite_form_data",
-  GITHUB_TOKEN: "fastwrite_github_token",
-  GENERATION_META: "fastwrite_generation_meta",
+  GITHUB_TOKEN: "fastwrite_github_token",  GENERATION_IN_PROGRESS: "fastwrite_gen_in_progress",
+  PROGRESS_STATE: "fastwrite_progress_state",  GENERATION_META: "fastwrite_generation_meta",
 };
 
 // ============================================
@@ -318,11 +318,11 @@ export const AI_PROVIDERS: AIProvider[] = [
     apiKeyUrl: "https://platform.openai.com/api-keys",
     apiKeyPlaceholder: "sk-...",
     models: [
-      { id: "gpt-5", name: "GPT-5", description: "Latest and most capable" },
-      { id: "gpt-4o", name: "GPT-4o", description: "Optimized multimodal model" },
-      { id: "gpt-4o-mini", name: "GPT-4o Mini", description: "Fast and cost-effective" },
-      { id: "gpt-4-turbo", name: "GPT-4 Turbo", description: "High performance" },
-      { id: "gpt-4o-realtime-preview", name: "GPT-4o Realtime Preview", description: "Preview version" },
+      { id: "gpt-5.2", name: "GPT-5.2", description: "Latest and most capable" },
+      { id: "gpt-5.2-pro", name: "GPT-5.2 Pro", description: "Smartest and most precise" },
+      { id: "gpt-5-mini", name: "GPT-5 Mini", description: "Fast and cost-efficient" },
+      { id: "gpt-5-nano", name: "GPT-5 Nano", description: "Fastest, most cost-efficient" },
+      { id: "custom", name: "Custom", description: "Enter your own model ID" },
     ],
   },
   {
@@ -331,10 +331,11 @@ export const AI_PROVIDERS: AIProvider[] = [
     apiKeyUrl: "https://aistudio.google.com/app/apikey",
     apiKeyPlaceholder: "AI...",
     models: [
-      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", description: "Most capable Gemini" },
-      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", description: "Fast responses" },
-      { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash-Lite", description: "Lightweight and fast" },
-      { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", description: "Previous generation flash" },
+      { id: "gemini-3-pro", name: "Gemini 3 Pro", description: "Most intelligent, best for agentic tasks" },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash", description: "Most balanced, speed & scale" },
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", description: "Best price-performance" },
+      { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash-Lite", description: "Ultra fast, cost-efficient" },
+      { id: "custom", name: "Custom", description: "Enter your own model ID" },
     ],
   },
   {
@@ -343,10 +344,11 @@ export const AI_PROVIDERS: AIProvider[] = [
     apiKeyUrl: "https://console.groq.com/keys",
     apiKeyPlaceholder: "gsk_...",
     models: [
-      { id: "llama-3-8b", name: "Llama 3 (8B)", description: "Fast and efficient" },
-      { id: "llama-3-70b", name: "Llama 3 (70B)", description: "More capable" },
-      { id: "mixtral-8x7b", name: "Mixtral 8x7B", description: "Mixture of experts" },
-      { id: "groq-1", name: "Groq-1", description: "Groq's native model" },
+      { id: "llama-3.1-8b-instant", name: "Llama 3.1 (8B)", description: "Fast and efficient" },
+      { id: "llama-3.3-70b-versatile", name: "Llama 3.3 (70B)", description: "More capable" },
+      { id: "openai/gpt-oss-120b", name: "GPT-OSS 120B", description: "OpenAI open-weight 120B" },
+      { id: "openai/gpt-oss-20b", name: "GPT-OSS 20B", description: "OpenAI open-weight 20B" },
+      { id: "custom", name: "Custom", description: "Enter your own model ID" },
     ],
   },
   {
@@ -355,10 +357,11 @@ export const AI_PROVIDERS: AIProvider[] = [
     apiKeyUrl: "https://openrouter.ai/settings/keys",
     apiKeyPlaceholder: "sk-or-...",
     models: [
-      { id: "minimax/minimax-m2:free", name: "Minimax M2", description: "Free tier" },
-      { id: "tngtech/deepseek-r1t2-chimera:free", name: "DeepSeek R1T2 Chimera", description: "Free tier" },
-      { id: "z-ai/glm-4.5-air:free", name: "GLM 4.5 Air", description: "Free tier" },
-      { id: "qwen/qwen3-coder:free", name: "Qwen3 Coder", description: "Free tier, coding focused" },
+      { id: "xiaomi/mimo-v2-flash:free", name: "MiMo-V2-Flash", description: "Top open-source, free" },
+      { id: "mistralai/devstral-2512:free", name: "Devstral 2", description: "Agentic coding, free" },
+      { id: "z-ai/glm-4.5-air:free", name: "GLM 4.5 Air", description: "Balanced performance, free" },
+      { id: "tngtech/tng-r1t2-chimera:free", name: "TNG R1T Chimera", description: "Creative storytelling, free" },
+      { id: "custom", name: "Custom", description: "Enter your own model ID" },
     ],
   },
 ];
