@@ -115,13 +115,14 @@ const HtmlExport = ({ result }: HtmlExportProps) => {
     <Button 
       variant="outline" 
       onClick={handleExport}
-      className="h-10 rounded-none border-white/10 hover:border-primary/40 bg-zinc-950 hover:bg-primary/5 text-[10px] font-mono uppercase tracking-[0.2em] px-4 group relative overflow-hidden" 
+      className="h-12 rounded-none border-white/10 hover:border-primary/40 bg-zinc-950 hover:bg-primary/5 text-[10px] font-mono uppercase tracking-[0.2em] px-6 group relative overflow-hidden industrial-border transition-all duration-300" 
     >
-      <div className="flex items-center gap-2 relative z-10">
-        <FileCode size={12} className="group-hover:translate-y-0.5 transition-transform" />
-        <span>Export HTML</span>
+      <div className="flex items-center gap-3 relative z-10">
+        <FileCode size={14} className="text-white/40 group-hover:text-primary transition-colors duration-300" />
+        <span className="group-hover:text-primary transition-colors duration-300">HTML_STATIC_EXPORT</span>
       </div>
-      <div className="absolute inset-0 bg-primary/5 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-linear pointer-events-none" />
+      
+      <div className="absolute bottom-0 left-0 w-full h-[1px] bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500" />
     </Button>
   );
 };
