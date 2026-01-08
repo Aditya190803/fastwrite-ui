@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
@@ -42,7 +42,7 @@ const CopyButton = ({ text }: { text: string }) => {
   );
 };
 
-export const MarkdownRenderer = ({ content, className }: MarkdownRendererProps) => {
+export const MarkdownRenderer = React.memo(({ content, className }: MarkdownRendererProps) => {
   // Process mermaid blocks
   const { processedContent, placeholders } = useMemo(() => {
     const regex = /```mermaid\n([\s\S]*?)```/g;
@@ -82,6 +82,18 @@ export const MarkdownRenderer = ({ content, className }: MarkdownRendererProps) 
             const text = String(children);
             const id = text.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
             return <h3 id={id} className="text-xl md:text-2xl font-black mt-12 mb-4 uppercase tracking-widest text-white/90 scroll-mt-32">{children}</h3>;
+          },
+          h1: ({ children }) => {
+            const id = String(children).toLowerCase().replace(/[^\w]+/g, '-');
+            return <h1 id={id} className="scroll-mt-32">{children}</h1>;
+          },
+          h2: ({ children }) => {
+            const id = String(children).toLowerCase().replace(/[^\w]+/g, '-');
+            return <h2 id={id} className="scroll-mt-32">{children}</h2>;
+          },
+          h3: ({ children }) => {
+            const id = String(children).toLowerCase().replace(/[^\w]+/g, '-');
+            return <h3 id={id} className="scroll-mt-32">{children}</h3>;
           },
           p: ({ children }) => {
             const text = String(children);
@@ -169,6 +181,6 @@ export const MarkdownRenderer = ({ content, className }: MarkdownRendererProps) 
       </ReactMarkdown>
     </div>
   );
-};
+});
 
 export default MarkdownRenderer;

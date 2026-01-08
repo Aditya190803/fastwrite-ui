@@ -4,6 +4,7 @@ import { renderMermaidSvg, sanitizeMermaidChart } from "@/lib/documentation";
 import { RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_CONFIG, STORAGE_KEYS } from "@/lib/constants";
+import { storage } from "@/lib/storage";
 
 interface MermaidProps {
   chart: string;
@@ -52,22 +53,16 @@ export const Mermaid = ({ chart }: MermaidProps) => {
     async (diagram: string): Promise<{ diagram: string | null; attempted: boolean }> => {
       let attempted = false;
       try {
-        const metadataRaw = localStorage.getItem(STORAGE_KEYS.GENERATION_META);
-        if (!metadataRaw) {
+        const metadata = await storage.get<any>(STORAGE_KEYS.GENERATION_META);
+        if (!metadata) {
           return { diagram: null, attempted };
         }
-
-        const metadata = JSON.parse(metadataRaw) as {
-          provider?: string;
-          model?: string;
-          prompt?: string;
-        };
 
         if (!metadata?.provider || !metadata?.model) {
           return { diagram: null, attempted };
         }
 
-        const apiKey = localStorage.getItem(`apiKey_${metadata.provider}`);
+        const apiKey = await storage.get<string>(`apiKey_${metadata.provider}`);
         if (!apiKey) {
           return { diagram: null, attempted };
         }
@@ -153,6 +148,29 @@ export const Mermaid = ({ chart }: MermaidProps) => {
         if (!ref.current || cancelled) return;
         ref.current.innerHTML = svg;
         ref.current.setAttribute("data-mermaid-chart", resolvedChart);
+        
+        // Add click listeners to nodes for interactivity
+        const svgEl = ref.current.querySelector("svg");
+        if (svgEl) {
+          const nodes = svgEl.querySelectorAll(".node");
+          nodes.forEach((node) => {
+            (node as HTMLElement).style.cursor = "pointer";
+            (node as HTMLElement).classList.add("hover:opacity-80", "transition-opacity");
+            
+            node.addEventListener("click", () => {
+              // Try to find a label or text within the node
+              const textContent = node.querySelector(".nodeLabel, text, .label")?.textContent || "";
+              const nodeId = node.id || "";
+              
+              window.dispatchEvent(
+                new CustomEvent("mermaid:node-click", {
+                  detail: { label: textContent.trim(), id: nodeId },
+                })
+              );
+            });
+          });
+        }
+        
         setHasError(false);
       } catch (primaryError) {
         console.error("Failed to render mermaid chart:", primaryError);
@@ -171,14 +189,14 @@ export const Mermaid = ({ chart }: MermaidProps) => {
               const nextBlock = ["```mermaid", repaired, "```"].join("\n");
 
               try {
-                const storedResult = localStorage.getItem(STORAGE_KEYS.DOCUMENTATION_RESULT);
+                const storedResult = await storage.get<any>(STORAGE_KEYS.DOCUMENTATION_RESULT);
                 if (storedResult) {
-                  const parsed = JSON.parse(storedResult);
+                  const parsed = storedResult;
                   if (parsed && typeof parsed.textContent === "string") {
                     const updatedText = parsed.textContent.replace(previousBlock, nextBlock);
                     if (updatedText !== parsed.textContent) {
                       parsed.textContent = updatedText;
-                      localStorage.setItem(STORAGE_KEYS.DOCUMENTATION_RESULT, JSON.stringify(parsed));
+                      await storage.set(STORAGE_KEYS.DOCUMENTATION_RESULT, parsed);
                     }
                   }
                 }
