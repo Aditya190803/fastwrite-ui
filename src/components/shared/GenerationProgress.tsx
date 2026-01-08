@@ -10,94 +10,123 @@ interface GenerationProgressProps {
 
 export function GenerationProgress({ steps, currentStep }: GenerationProgressProps) {
   return (
-    <div className="space-y-4 font-mono">
-      <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-2">
-         <div className="flex items-center gap-2">
-            <Activity size={12} className="text-primary" />
-            <span className="text-[10px] uppercase tracking-[0.3em] text-primary">STATUS</span>
+    <div className="space-y-6 font-mono">
+      <div className="flex items-center justify-between mb-8 pb-4 relative overflow-hidden">
+         <div className="absolute bottom-0 left-0 w-full h-[1px] bg-white/5" />
+         <div className="absolute bottom-0 left-0 w-24 h-[1px] bg-primary animate-scan-fast" />
+         
+         <div className="flex items-center gap-4 relative z-10">
+            <Activity size={12} className="text-primary animate-pulse" />
+            <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-bold italic">GEN_STRATUM_STATUS</span>
          </div>
-         <span className="text-[10px] uppercase tracking-[0.3em] text-white/20">ACTIVE</span>
+         <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+            <span className="text-[10px] uppercase tracking-[0.2em] text-white/70">UPLINK_ESTABLISHED</span>
+         </div>
       </div>
 
-      {steps.map((step, index) => {
-        const isActive = step.id === currentStep || step.status === "in-progress";
-        const isCompleted = step.status === "completed";
-        const isError = step.status === "error";
+      <div className="space-y-3">
+        {steps.map((step, index) => {
+          const isActive = step.id === currentStep || step.status === "in-progress";
+          const isCompleted = step.status === "completed";
+          const isError = step.status === "error";
 
-        return (
-          <motion.div
-            key={step.id}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className={cn(
-              "relative flex items-center gap-4 p-4 border transition-all",
-              isActive ? "bg-primary/5 border-primary/20" : "bg-black/20 border-white/5",
-              isCompleted && "opacity-60",
-              isError && "bg-red-500/5 border-red-500/20"
-            )}
-          >
-            {/* Step Number */}
-            <div className="text-[9px] text-white/20 font-bold absolute top-1 left-1">
-               0{index + 1}
-            </div>
-
-            <div className="flex-shrink-0 relative">
-              {isCompleted ? (
-                <div className="w-6 h-6 rounded-full border border-primary/40 flex items-center justify-center text-primary">
-                  <CheckCircle2 size={14} />
-                </div>
-              ) : isError ? (
-                <div className="w-6 h-6 rounded-full border border-red-500/40 flex items-center justify-center text-red-500">
-                  <XCircle size={14} />
-                </div>
-              ) : isActive ? (
-                <div className="w-6 h-6 rounded-full border border-primary flex items-center justify-center text-primary">
-                  <Loader2 size={14} className="animate-spin" />
-                </div>
-              ) : (
-                <div className="w-6 h-6 rounded-full border border-white/10 flex items-center justify-center text-white/10">
-                  <Circle size={14} />
-                </div>
+          return (
+            <motion.div
+              key={step.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className={cn(
+                "group relative flex items-center gap-6 p-5 border transition-all duration-500 industrial-border overflow-hidden",
+                isActive ? "bg-white/[0.04] border-primary/30" : "bg-black/40 border-white/5",
+                isCompleted && "bg-black/20 border-white/5 grayscale-[0.5]",
+                isError && "bg-red-500/5 border-red-500/30"
               )}
-            </div>
+            >
+              {/* Dynamic scanline for active */}
+              {isActive && (
+                <div className="absolute inset-x-0 h-[100%] top-0 bg-primary/5 pointer-events-none animate-scan-slow opacity-20" />
+              )}
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
-                <p
-                  className={cn(
-                    "text-[10px] uppercase tracking-widest font-black",
-                    isActive ? "text-primary" : "text-white/40",
-                    isCompleted && "text-white/60",
-                    isError && "text-red-500"
-                  )}
-                >
-                  {step.label.toUpperCase()}
-                </p>
-                {isActive && (
-                   <motion.span 
-                     animate={{ opacity: [1, 0.4, 1] }}
-                     transition={{ repeat: Infinity, duration: 1 }}
-                     className="text-[8px] text-primary"
-                   >
-                     PROCESSING
-                   </motion.span>
+              {/* Step Number Decoration */}
+              <div className="text-[8px] font-mono text-white/10 absolute top-2 right-4 tracking-[0.4em] font-bold">
+                 MODULE_0{index + 1}
+              </div>
+
+              <div className="flex-shrink-0 relative z-10">
+                {isCompleted ? (
+                  <div className="w-10 h-10 border border-primary/30 flex items-center justify-center text-primary bg-primary/5 text-glow">
+                    <CheckCircle2 size={18} />
+                  </div>
+                ) : isError ? (
+                  <div className="w-10 h-10 border border-red-500/40 flex items-center justify-center text-red-500 bg-red-500/5">
+                    <XCircle size={18} />
+                  </div>
+                ) : isActive ? (
+                  <div className="w-10 h-10 border-2 border-primary flex items-center justify-center text-primary shadow-[0_0_15px_rgba(46,108,246,0.3)]">
+                    <Loader2 size={18} className="animate-spin" />
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 border border-white/5 flex items-center justify-center text-white/10 bg-white/[0.02]">
+                    <Circle size={18} />
+                  </div>
                 )}
               </div>
-              
-              {/* Technical sub-bit */}
-              <div className="font-mono text-[8px] uppercase tracking-widest text-white/20 flex gap-4">
-                 <span>Type: {step.id.split('-')[0] || "Global"}</span>
-              </div>
-            </div>
 
-            {/* Kinetic corner for active step */}
-            {isActive && (
-               <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-primary" />
-            )}
-          </motion.div>
-        );
-      })}
+              <div className="flex-1 min-w-0 relative z-10">
+                <div className="flex items-center justify-between mb-2">
+                  <p
+                    className={cn(
+                      "text-[11px] uppercase tracking-[0.2em] font-black italic",
+                      isActive ? "text-primary text-glow" : "text-white/70",
+                      isCompleted && "text-white/80",
+                      isError && "text-red-500"
+                    )}
+                  >
+                    {step.label.toUpperCase()}
+                  </p>
+                  {isActive && (
+                     <div className="flex items-center gap-2">
+                        <motion.div 
+                           animate={{ scaleX: [1, 2, 1] }}
+                           transition={{ repeat: Infinity, duration: 0.8 }}
+                           className="w-4 h-[1px] bg-primary"
+                        />
+                        <span className="text-[8px] font-bold text-primary tracking-widest bg-primary/10 px-2 py-0.5">
+                           PROCESSING_V3
+                        </span>
+                     </div>
+                  )}
+                </div>
+                
+                <div className="font-mono text-[8px] uppercase tracking-widest text-white/50 flex gap-6 italic">
+                   <span className="flex items-center gap-2">
+                      <Zap size={8} className={isActive ? "text-primary" : "text-white/30"} />
+                      INST_ID: {step.id.toUpperCase()}
+                   </span>
+                   {isCompleted && <span className="text-primary/60">VECTOR_READY</span>}
+                   {isError && <span className="text-red-500/60">CHECKSUM_FAILED</span>}
+                </div>
+              </div>
+
+              {/* High-impact corner accents for active/error */}
+              {isActive && (
+                 <>
+                   <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-primary" />
+                   <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-primary" />
+                 </>
+              )}
+              {isError && (
+                 <>
+                   <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-red-500" />
+                   <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-red-500" />
+                 </>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -147,7 +176,7 @@ export function SimpleProgress({ progress, label }: SimpleProgressProps) {
         </motion.div>
       </div>
 
-      <div className="flex justify-between font-mono text-[8px] uppercase tracking-widest text-white/20">
+      <div className="flex justify-between font-mono text-[8px] uppercase tracking-widest text-white/50">
          <span>Input_Stream_Alpha</span>
          <span>Latency: 12ms</span>
       </div>
