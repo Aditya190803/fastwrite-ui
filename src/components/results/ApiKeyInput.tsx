@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Key, ExternalLink, ShieldCheck, Cpu, Globe } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { storage } from "@/lib/storage";
 
 interface ApiKeyInputProps {
   onApiKeySubmit: (apiKey: string, model: string) => void;
@@ -26,19 +27,24 @@ const ApiKeyInput = ({ onApiKeySubmit }: ApiKeyInputProps) => {
   const [selectedProvider, setSelectedProvider] = useState("openai");
   
   useEffect(() => {
-    const savedApiKey = localStorage.getItem(`apiKey_${selectedProvider}`);
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
+    const loadKey = async () => {
+      const savedApiKey = await storage.get<string>(`apiKey_${selectedProvider}`);
+      if (savedApiKey) {
+        setApiKey(savedApiKey);
+      } else {
+        setApiKey("");
+      }
+    };
+    loadKey();
   }, [selectedProvider]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!apiKey.trim()) {
       toast.error("API Key required");
       return;
     }
     
-    localStorage.setItem(`apiKey_${selectedProvider}`, apiKey);
+    await storage.set(`apiKey_${selectedProvider}`, apiKey);
     onApiKeySubmit(apiKey, selectedModel);
     toast.success("API Key saved");
   };

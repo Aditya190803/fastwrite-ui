@@ -1,41 +1,14 @@
-# FastWrite UI - TODO & Improvements
+# FastWrite Project Roadmap
 
-### Medium Priority
-- [x] **Project Description Not Validated**
-  - ~~The prompt includes `projectDescription || "No project description provided."` even when it's required for better documentation~~
-  - **Fixed:** Added warning toast when project description is empty in `Index.tsx`
+## ✨ Improvements
+- [x] **UI/UX**: Refine error handling and feedback when AI generation fails.
+- [x] **Mobile**: Improve the resizable panel behavior specifically on mobile viewports in `Results.tsx`.
+- [x] **Performance**: Optimize long document rendering in `MarkdownRenderer.tsx`.
+- [x] **Theme**: Refine dark mode colors for better accessibility and contrast.
 
-- [ ] **No Loading State Persistence**
-  - If user refreshes during loading, the generation is lost
-  - Consider using a more robust state management approach
-
----
-
-## ✨ Feature Improvements
-
-### UI/UX Enhancements
-
-- [x] **Improve Mobile Experience**
-  - ~~Mobile layout exists but could be optimized~~
-  - **Fixed:** Added collapsible sections for Documentation Preferences and Prompt Preview on mobile in `CardSection.tsx`
-
-### Functionality Additions
-
-- [x] **Implement Diagram Regeneration UI**
-  - ~~Mermaid auto-repair exists but is hidden~~
-  - **Fixed:** Added visible "Regenerate" button in `Mermaid.tsx` that appears on hover or when error occurs
-
-### Performance & Technical
-
-- [ ] **Implement Request Queuing**
-  - Queue multiple generation requests
-  - Show queue status to user
-
-## 🔧 Code Quality & Maintenance
-
-- [x] **Improve TypeScript Types**
-  - ~~Add stricter typing for API payloads and responses~~
-  - **Fixed:** Added `AIProvider`, `AIModel` types and `AI_PROVIDERS` config in `lib/constants.ts`
-
-- [ ] **Add Health Check Endpoint**
-  - For monitoring and load balancing
+## 💡 New Features Added
+- [x] **LaTeX Export**: Support exporting specialized technical documentation to LaTeX format.
+- [x] **Live Editing**: Add a split-view editor in `Results.tsx` for real-time markdown updates.
+- [x] **Mermaid Interactivity**: Enable clicking on nodes in `VisualViewer.tsx` to highlight related code/text.
+- [x] **ArXiv Search**: Manual and automatic literature references search.
+- [x] **IndexedDB**: Persistent storage for large documentation results.

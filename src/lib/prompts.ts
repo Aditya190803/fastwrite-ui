@@ -3,7 +3,7 @@
 import { CODE_SECTION_MAP, REPORT_SECTION_MAP } from "./constants";
 
 interface PromptOptions {
-  sourceType: "github" | "zip";
+  sourceType: "github" | "zip" | "url";
   githubUrl?: string;
   projectDescription?: string;
   selectedCodeSections: string[];
