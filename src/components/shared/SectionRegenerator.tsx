@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { API_CONFIG, STORAGE_KEYS } from "@/lib/constants";
+import { storage } from "@/lib/storage";
 import {
   Dialog,
   DialogContent,
@@ -37,14 +38,13 @@ export function SectionRegenerator({
     setIsRegenerating(true);
 
     try {
-      const metadataRaw = localStorage.getItem(STORAGE_KEYS.GENERATION_META);
-      if (!metadataRaw) {
+      const metadata = await storage.get<any>(STORAGE_KEYS.GENERATION_META);
+      if (!metadata) {
         toast.error("Missing generation metadata. Please regenerate the full documentation.");
         return;
       }
 
-      const metadata = JSON.parse(metadataRaw);
-      const apiKey = localStorage.getItem(`apiKey_${metadata.provider}`);
+      const apiKey = await storage.get<string>(`apiKey_${metadata.provider}`);
       
       if (!apiKey) {
         toast.error(`No API key found for ${metadata.provider}`);

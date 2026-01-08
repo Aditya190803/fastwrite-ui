@@ -14,6 +14,7 @@ import { History, Trash2, FileText, Github, FolderArchive, Database, ArrowRight 
 import { HistoryEntry, DocumentationResult } from "@/types/documentation";
 import { STORAGE_KEYS } from "@/lib/constants";
 import { toast } from "sonner";
+import { storage } from "@/lib/storage";
 
 interface HistoryPanelProps {
   onSelectEntry: (result: DocumentationResult) => void;
@@ -29,11 +30,10 @@ export function HistoryPanel({ onSelectEntry }: HistoryPanelProps) {
     loadHistory();
   }, [isOpen]);
 
-  const loadHistory = () => {
+  const loadHistory = async () => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.HISTORY);
-      if (stored) {
-        const entries = JSON.parse(stored) as HistoryEntry[];
+      const entries = await storage.get<HistoryEntry[]>(STORAGE_KEYS.HISTORY);
+      if (entries) {
         entries.sort((a, b) => b.generatedAt - a.generatedAt);
         setHistory(entries);
       }
@@ -42,16 +42,16 @@ export function HistoryPanel({ onSelectEntry }: HistoryPanelProps) {
     }
   };
 
-  const deleteEntry = (id: string) => {
+  const deleteEntry = async (id: string) => {
     const updated = history.filter((entry) => entry.id !== id);
     setHistory(updated);
-    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(updated));
+    await storage.set(STORAGE_KEYS.HISTORY, updated);
     toast.success("Entry deleted");
   };
 
-  const clearHistory = () => {
+  const clearHistory = async () => {
     setHistory([]);
-    localStorage.removeItem(STORAGE_KEYS.HISTORY);
+    await storage.remove(STORAGE_KEYS.HISTORY);
     toast.success("History cleared");
   };
 
@@ -65,105 +65,114 @@ export function HistoryPanel({ onSelectEntry }: HistoryPanelProps) {
       <SheetTrigger asChild>
         <Button 
           variant="outline" 
-          className="h-10 rounded-none border-white/10 hover:border-primary/40 bg-zinc-950 hover:bg-primary/5 text-[10px] font-mono uppercase tracking-[0.2em] px-4 group relative"
+          className="h-12 rounded-none border-white/10 hover:border-primary/40 bg-zinc-950 hover:bg-primary/5 text-[10px] font-mono uppercase tracking-[0.4em] px-8 group relative overflow-hidden industrial-border shadow-lg transition-all duration-300"
         >
-          <History className="h-3 w-3 mr-2 group-hover:rotate-[-45deg] transition-transform" />
-          History
+          <History className="h-4 w-4 mr-3 group-hover:rotate-[-45deg] transition-transform text-white/40 group-hover:text-primary" />
+          HISTORY_ARCHIVE
           {history.length > 0 && (
-            <span className="ml-3 px-1.5 py-0.5 bg-primary/10 text-primary border border-primary/20 text-[8px] font-bold">
+            <span className="ml-4 px-2 py-0.5 bg-primary text-black text-[9px] font-bold">
               {history.length}
             </span>
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="bg-zinc-950 border-l border-white/10 w-full sm:max-w-xl p-0 flex flex-col">
-        <div className="p-8 border-b border-white/5 bg-black/40">
-           <div className="flex items-center gap-3 mb-4">
-              <div className="w-2 h-7 bg-primary" />
-              <SheetTitle className="font-heading uppercase text-2xl font-black tracking-tighter text-white">History</SheetTitle>
+      <SheetContent className="bg-black border-l border-white/10 w-full sm:max-w-2xl p-0 flex flex-col selection:bg-primary selection:text-black shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
+        {/* Decorative background grid */}
+        <div className="absolute inset-x-0 top-0 h-full pointer-events-none opacity-[0.03] z-0">
+          <div className="absolute inset-0 bg-[size:30px_30px] [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)]" />
+        </div>
+
+        <div className="p-10 border-b border-white/5 bg-white/[0.02] relative z-10">
+           <div className="flex items-center gap-4 mb-6">
+              <div className="w-1.5 h-10 bg-primary" />
+              <SheetTitle className="font-heading uppercase text-4xl font-black tracking-tighter text-white italic">ARCHIVE_LOG</SheetTitle>
            </div>
-           <SheetDescription className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60 leading-relaxed">
-             Access your previous documentation generations and saved results.
+           <SheetDescription className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/40 leading-relaxed font-bold">
+             // PERSISTENT_STORAGE_ACCESS_GRANTED
+             <br />
+             // READY_TO_FETCH_PREVIOUS_BUFS
            </SheetDescription>
         </div>
 
-        <div className="flex-1 overflow-hidden flex flex-col p-8">
+        <div className="flex-1 overflow-hidden flex flex-col p-10 relative z-10">
           {history.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center opacity-30">
-              <Database size={48} className="mb-6" />
-              <p className="font-heading font-bold uppercase tracking-widest">No History</p>
-              <p className="font-mono text-[10px] uppercase mt-2">No generations found in history</p>
+            <div className="flex-1 flex flex-col items-center justify-center text-center opacity-10 grayscale">
+              <Database size={64} className="mb-8" />
+              <p className="font-heading font-black uppercase tracking-widest text-3xl">NULL_POINTER</p>
+              <p className="font-mono text-[10px] uppercase mt-4 tracking-[0.4em]">NO_RECORDS_FOUND_IN_LOC_STORAGE</p>
             </div>
           ) : (
             <>
-              <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-2">
-                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                   <span className="font-mono text-[9px] uppercase tracking-widest text-primary">Saved Generations</span>
+              <div className="flex justify-between items-center mb-10 pb-4 border-b border-white/5">
+                <div className="flex items-center gap-4">
+                  <div className="w-3 h-3 bg-primary animate-pulse rounded-full" />
+                  <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">ACTIVE_SESSIONS</span>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
                   onClick={clearHistory}
-                  className="font-mono text-[9px] uppercase tracking-widest text-red-500/60 hover:text-red-500 hover:bg-red-500/5 px-4"
+                  className="text-[9px] font-mono text-white/20 hover:text-red-500 uppercase tracking-widest hover:bg-transparent transition-colors"
                 >
                   <Trash2 className="h-3 w-3 mr-2" />
-                  Clear All
+                  PURGE_ALL
                 </Button>
               </div>
 
-              <ScrollArea className="flex-1 -mr-4 pr-4">
-                <div className="space-y-4">
+              <ScrollArea className="flex-1 pr-6 custom-scrollbar">
+                <div className="space-y-4 pb-12">
                   {history.map((entry) => (
-                    <div
+                    <div 
                       key={entry.id}
-                      className="group relative bg-white/5 border border-white/5 p-4 hover:border-primary/40 hover:bg-white/[0.08] transition-all cursor-pointer"
+                      className="group relative bg-white/[0.02] border border-white/5 p-6 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 cursor-pointer industrial-border overflow-hidden"
                       onClick={() => handleSelect(entry)}
                     >
-                      {/* Technical accents */}
-                      <div className="absolute top-0 right-0 w-8 h-[1px] bg-primary/20" />
-                      
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 flex items-center justify-center bg-black/40 border border-white/5 group-hover:border-primary/20 group-hover:text-primary transition-colors">
-                            {entry.sourceType === "github" ? (
-                              <Github size={14} />
-                            ) : (
-                              <FolderArchive size={14} />
-                            )}
+                      <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <div className="text-[8px] font-mono text-primary animate-pulse font-bold tracking-widest">LOAD_PTR</div>
+                      </div>
+
+                      <div className="flex gap-6 items-start relative z-10">
+                        <div className="w-12 h-12 flex-shrink-0 bg-black border border-white/5 flex items-center justify-center group-hover:border-primary/40 transition-colors">
+                          {entry.sourceType === "github" ? (
+                            <Github className="h-5 w-5 text-white/20 group-hover:text-primary transition-colors" />
+                          ) : entry.sourceType === "zip" ? (
+                            <FolderArchive className="h-5 w-5 text-white/20 group-hover:text-primary transition-colors" />
+                          ) : (
+                            <FileText className="h-5 w-5 text-white/20 group-hover:text-primary transition-colors" />
+                          )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start mb-2">
+                             <h4 className="font-heading font-black text-lg uppercase tracking-tight text-white/80 group-hover:text-white truncate pr-4 italic">
+                               {entry.sourceName}
+                             </h4>
+                             <span className="text-[9px] font-mono text-white/20 whitespace-nowrap">
+                               {formatDistanceToNow(entry.generatedAt, { addSuffix: true }).toUpperCase()}
+                             </span>
                           </div>
-                          <div className="min-w-0">
-                            <h4 className="font-mono text-[10px] uppercase tracking-wider text-white truncate max-w-[240px]">
-                              {entry.sourceName}
-                            </h4>
-                            <div className="flex gap-2 font-mono text-[8px] uppercase tracking-widest text-muted-foreground/60 mt-1">
-                               <span className="text-primary/60">{entry.provider}</span>
-                               <span>•</span>
-                               <span>{entry.model}</span>
+                          
+                          <div className="flex items-center gap-4">
+                            <div className="px-2 py-0.5 border border-white/5 bg-black text-[8px] font-mono text-white/40 group-hover:text-primary group-hover:border-primary/20 transition-colors">
+                              {entry.provider?.toUpperCase()} / {entry.model?.toUpperCase()}
                             </div>
+                            <span className="text-[8px] font-mono text-white/10 uppercase tracking-widest">
+                              CRC: {entry.id.slice(0, 8).toUpperCase()}
+                            </span>
                           </div>
                         </div>
+
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-white/20 hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
+                          className="h-10 w-10 text-white/20 hover:text-red-500 hover:bg-red-500/10 transition-all rounded-none opacity-0 group-hover:opacity-100"
                           onClick={(e) => {
                             e.stopPropagation();
                             deleteEntry(entry.id);
                           }}
                         >
-                          <Trash2 size={12} />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
-
-                      <div className="mt-4 flex items-center justify-between">
-                         <div className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/30">
-                            {formatDistanceToNow(entry.generatedAt, { addSuffix: true }).toUpperCase()}
-                         </div>
-                         <div className="flex items-center gap-2 font-mono text-[8px] uppercase tracking-[0.2em] text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                            Retrieve_State
-                            <ArrowRight size={10} />
-                         </div>
                       </div>
                     </div>
                   ))}
@@ -173,8 +182,8 @@ export function HistoryPanel({ onSelectEntry }: HistoryPanelProps) {
           )}
         </div>
         
-        <div className="p-6 border-t border-white/5 bg-black/20 text-center">
-            <p className="font-mono text-[8px] uppercase tracking-[0.4em] text-white/20">Encryption_Standard: AES-256_LOCAL</p>
+        <div className="p-8 border-t border-white/5 bg-white/[0.01] text-center z-10 relative">
+            <p className="font-mono text-[8px] uppercase tracking-[0.5em] text-white/10 font-bold">ENCRYPTION_STANDARD: AES-256_GCM_PROTOCOL</p>
         </div>
       </SheetContent>
     </Sheet>
@@ -184,16 +193,16 @@ export function HistoryPanel({ onSelectEntry }: HistoryPanelProps) {
 /**
  * Utility function to save a new entry to history
  */
-export function saveToHistory(
+export async function saveToHistory(
   result: DocumentationResult,
   sourceType: "github" | "zip",
   sourceName: string,
   provider: string,
   model: string
-): void {
+): Promise<void> {
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.HISTORY);
-    let history: HistoryEntry[] = stored ? JSON.parse(stored) : [];
+    const stored = await storage.get<HistoryEntry[]>(STORAGE_KEYS.HISTORY);
+    let history: HistoryEntry[] = stored || [];
 
     const newEntry: HistoryEntry = {
       id: `history-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -213,7 +222,7 @@ export function saveToHistory(
       history = history.slice(0, MAX_HISTORY_ENTRIES);
     }
 
-    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+    await storage.set(STORAGE_KEYS.HISTORY, history);
   } catch (error) {
     console.error("Failed to save to history:", error);
   }
