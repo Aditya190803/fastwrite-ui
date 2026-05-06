@@ -1,0 +1,25 @@
+# FastWrite UI
+
+> AI-powered documentation generation interface — a modern web app for creating technical documentation with customizable templates and preferences.
+
+## Overview
+FastWrite UI is the web frontend for the FastWrite AI documentation platform. It allows users to input source code or project references, configure documentation preferences, and generate comprehensive documentation using AI.
+
+## Key Features
+- **Source Input** — Upload source code, connect Git repos, or fetch from ArXiv
+- **Template Selection** — Choose from multiple documentation templates
+- **Documentation Preferences** — Customize output format, tone, and detail level
+- **Prompt Preview** — Preview the AI prompt before generation
+- **Results Page** — View and download generated documentation
+
+## Pages
+- `/` — Landing page and main interface
+- `/results` — Documentation results
+- `/privacy` — Privacy policy
+- `/terms` — Terms of service
+
+## Tech Stack
+- React + Vite
+- TypeScript
+- Tailwind CSS
+- shadcn/ui

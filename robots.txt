@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Allow: /privacy
+Allow: /terms
+
+Sitemap: https://fastwrite-ui.vercel.app/sitemap.xml
