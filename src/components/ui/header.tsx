@@ -29,7 +29,7 @@ export const MainHeader = () => {
         
         <div className="hidden lg:flex items-center space-x-16 font-mono text-[10px] uppercase tracking-[0.4em] text-white/40">
           <a 
-            href="https://fastwrite.kjsieit.com" 
+            href="https://fastwrite-py.vercel.app/" 
             target="_blank" 
             rel="noopener noreferrer"
             className="hover:text-primary transition-all flex items-center gap-2 relative group py-2"

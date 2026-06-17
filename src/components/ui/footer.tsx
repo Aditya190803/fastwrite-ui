@@ -19,7 +19,7 @@ export const MainFooter = () => {
             <ul className="space-y-2 font-mono text-[10px] uppercase tracking-widest">
               <li>
                 <a 
-                  href="https://fastwrite.kjsieit.com" 
+                  href="https://fastwrite-py.vercel.app/" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-primary transition-colors"
